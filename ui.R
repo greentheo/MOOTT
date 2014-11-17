@@ -9,6 +9,7 @@ library(knitr)
 library(zoo)
 library(OpenStreetMapR)
 library(shiny)
+library(shiny-incubator)
 
 # datadf = readRDS('data/basicCOTSData.rds')
 # #dataGPS = readRDS('GPS Data')
@@ -47,17 +48,12 @@ shinyUI(bootstrapPage(title = 'Transportation Analysis Toolbox',
                                             label="Number of Pickups Serviced",
                                             choices = c(1000,5000,9000),
                                             selected = 1000
-                                            ),
-                                selectInput(inputId = 'liveOn',
-                                            label="Simulate Live?",
-                                            choices = c("Yes", "No"),
-                                            selected = "No")
+                                            )
                                 ),
                          column(9, 
                                 tabsetPanel(
                                   tabPanel(title = 'Live',
                                            fluidRow(
-                                             column(3),
                                              column(9,
                                                     tags$head(tags$script(src="leaflet.js"),
                                                               tags$link(rel = "stylesheet", type = "text/css", href = "leaflet.css"),
@@ -77,72 +73,149 @@ shinyUI(bootstrapPage(title = 'Transportation Analysis Toolbox',
                                            tabsetPanel(
                                              tabPanel(title='Current Queue',
                                                       fluidRow(
+                                                        column(9,
+                                                               h3('Dispatch Map'),
+                                                               htmlOutput('queueMap')
+                                                        )
+                                                        ),
+                                                      fluidRow(
                                                         column(6,
                                                                h3('Current Dispatch Queue'),
                                                                dataTableOutput('queueTable')
                                                         ),
                                                         column(6,
-                                                               h3('Upcoming Tickets'),
-                                                               dataTableOutput('upcomingQueue')
+                                                               h3('Dispatch Stats'),
+                                                               tableOutput('dispatchStats')
                                                         )
                                                       )
                                                ),
-                                             tabPanel(title='Rescheduling'
+                                             tabPanel(title='Dispatch Stats',
+                                                      fluidRow(h3('Dispatch Summary Statistics')),
+                                                      fluidRow(
+                                                        column(9,
+                                                               h4('by Truck'),
+                                                               dataTableOutput('dispatchSummaryByTruck')
+                                                        )
+                                                        ),
+                                                      fluidRow(
+                                                        column(9,
+                                                               h4('by Base Station'),
+                                                               dataTableOutput('dispatchSummaryByBaseStation')
+                                                        )
+                                                      ),
+                                                      fluidRow(
+                                                        column(9,
+                                                               h4('by County'),
+                                                               dataTableOutput('dispatchByCounty')
+                                                        )
+                                                      ),
+                                                      fluidRow(
+                                                        column(9,
+                                                               h4('by Field'),
+                                                               dataTableOutput('dispatchByField')
+                                                        )
+                                                      ),
+                                                      fluidRow(
+                                                        column(9,
+                                                               h4('by Company'),
+                                                               dataTableOutput('dispatchByCompany')
+                                                        )
+                                                      )
+                                                      ),
+                                             tabPanel(title='Resource Availability',
+                                                      h3('Truck Availability'),
+                                                      fluidRow(
+                                                        column(9,
+                                                               selectInput(inputId = "truckAvailable",
+                                                                           label="Truck Availability to Change",
+                                                                           choices = c(0),
+                                                                           selected = 0),
+                                                                selectInput(inputId = "truckAvailableTF",
+                                                                            label="Available?",
+                                                                            choices = c("Yes", "No"),
+                                                                            selected = "Yes"),
+                                                               submitButton(text = "Apply")
+                                                            )
+                                                        ),
+                                                      hr(),
+                                                      fluidRow(
+                                                        dataTableOutput('trucksInfo')
+                                                        )
+                                                      
                                               ),
-                                             tabPanel(title='Manual Scheduling'
+                                             tabPanel(title='Manual Rescheduling',
+                                                      h3('Truck Availability'),
+                                                      fluidRow(
+                                                        column(9,
+                                                               selectInput(inputId = "pickupTicket",
+                                                                           label="Ticket to Reassign",
+                                                                           choices = c(0),
+                                                                           selected = 0),
+                                                               selectInput(inputId = "truckAssign",
+                                                                           label="Truck",
+                                                                           choices = c(0),
+                                                                           selected = 0),
+                                                               submitButton(text = "Apply")
+                                                        )
+                                                      ),
+                                                      hr(),
+                                                      fluidRow(
+                                                        dataTableOutput('queueTable2')
+                                                      )
+                                                      
                                              )
                                              )
                                                
                                              
                                            
                                   ),
-                                  tabPanel(title = 'Forecasting',
-                                           
-                                           fluidRow(
-                                             hr(),
-                              
-                                            tabsetPanel(
-#                                               tabPanel(title = 'Load Forecast by County',
+#                                   tabPanel(title = 'Forecasting',
+#                                            
+#                                            fluidRow(
+#                                              hr(),
+#                               
+#                                             tabsetPanel(
+# #                                               tabPanel(title = 'Load Forecast by County',
+# #                                                        column(3),
+# #                                                        column(9,
+# #                                                               #h3('Forecast by County Map'),
+# #                                                               #htmlOutput('forecastByCountyView'),
+# #                                                               h3('Forecast by County Table'),
+# #                                                               dataTableOutput('forecastByCounty'                                                                               
+# #                                                                               ))
+# #                                                        
+# #                                               ),
+# #                                               tabPanel(title = 'Load Forecast by Township',
+# #                                                        column(3),
+# #                                                        column(9,
+# #                                                               #h3('Forecast by Township'),
+# #                                                               #htmlOutput('forecastByTownshipView'),
+# #                                                               h3('Forecast by Township Table'),
+# #                                                               dataTableOutput('forecastByTownship') 
+# #                                                               )
+# #                                                        ),
+#                                               tabPanel(title = 'Load Forecast by Truck',
 #                                                        column(3),
 #                                                        column(9,
-#                                                               #h3('Forecast by County Map'),
-#                                                               #htmlOutput('forecastByCountyView'),
-#                                                               h3('Forecast by County Table'),
-#                                                               dataTableOutput('forecastByCounty'                                                                               
-#                                                                               ))
-#                                                        
-#                                               ),
-#                                               tabPanel(title = 'Load Forecast by Township',
-#                                                        column(3),
-#                                                        column(9,
-#                                                               #h3('Forecast by Township'),
-#                                                               #htmlOutput('forecastByTownshipView'),
-#                                                               h3('Forecast by Township Table'),
-#                                                               dataTableOutput('forecastByTownship') 
+#                                                               h3('Load Forecast by Truck')#,
+#                                                               #dataTableOutput('forecastByTruck')
 #                                                               )
 #                                                        ),
-                                              tabPanel(title = 'Load Forecast by Truck',
-                                                       column(3),
-                                                       column(9,
-                                                              h3('Load Forecast by Truck')#,
-                                                              #dataTableOutput('forecastByTruck')
-                                                              )
-                                                       ),
-                                              
-                                              tabPanel(title = '7 Day Detail',
-                                                       column(3),
-                                                       column(9,
-                                                              h3('All Forecast Loads Map'),
-                                                              #htmlOutput('forecastLoadsView'),
-                                                              h3('All Forecast Loads Table')#,
-                                                              #dataTableOutput('forecastLoads')
-                                                              )
-                                                       
-                                              )
-                                            )
-                                             
-                                           )
-                                  ),
+#                                               
+#                                               tabPanel(title = '7 Day Detail',
+#                                                        column(3),
+#                                                        column(9,
+#                                                               h3('All Forecast Loads Map'),
+#                                                               #htmlOutput('forecastLoadsView'),
+#                                                               h3('All Forecast Loads Table')#,
+#                                                               #dataTableOutput('forecastLoads')
+#                                                               )
+#                                                        
+#                                               )
+#                                             )
+#                                              
+#                                            )
+#                                   ),
                                   tabPanel(title='Resource Allocation',
                                            tabsetPanel(
                                              tabPanel(title='Base Map',
@@ -150,60 +223,60 @@ shinyUI(bootstrapPage(title = 'Transportation Analysis Toolbox',
                                                       htmlOutput('baseMap')
                                                       )
                                              )
-                                           ),
-                                  tabPanel(title = 'Analysis',
-                                           fluidRow(
-                                             column(12,
-#                                                     selectInput(inputId = "historyTimeRegion",
-#                                                                 label = "Timeframe",
-#                                                                 choices = c("Last14Days", "Last30Days","Last90Days","Previous90Days"),
-#                                                                 selected = "Last30Days"
-#                                                      ),
-                                                    tabsetPanel(
-                                                      
-                                                      tabPanel('by Truck',
-                                                                                            h3('Efficiency and Utilization by County'),
-                                                                                            #htmlOutput('historicalCountyView'),
-                                                                                            h3('Data Table for Historical Analysis')#,
-                                                                                            #dataTableOutput('historicalCounty')
-                                                                 ),
-                                                      
-                                                      tabPanel('by Operator',
-                                                               fluidRow(
-                                                                   
-                                                                   column(12,
-                                                                          h3('Truck Level Analysis')#,
-                                                                          #dataTableOutput('historicalTruck')
-                                                                          )
-                                                                           
-                                                                )
-                                                               ),#end panel
-                                                      tabPanel('by Base Station',
-                                                               fluidRow(
-                                                                 
-                                                                 column(12,
-                                                                        h3('Truck Level Analysis')#,
-                                                                        #dataTableOutput('historicalPL')
-                                                                 )
-                                                                 
-                                                               )
-                                                      ),#end panel
-                                                      tabPanel('All Pickups',
-                                                               fluidRow(
-                                                                 
-                                                                 column(12,
-                                                                        h3('Ticket Level Analysis')#,
-                                                                        #dataTableOutput('historicalTickets')
-                                                                 )
-                                                                 
-                                                               )
-                                                      )#end panel
-                                                               
-                                                    )
-                                                    )
-                                             
-                                             
-                                           ))
+                                           )
+#                                   tabPanel(title = 'Analysis',
+#                                            fluidRow(
+#                                              column(12,
+# #                                                     selectInput(inputId = "historyTimeRegion",
+# #                                                                 label = "Timeframe",
+# #                                                                 choices = c("Last14Days", "Last30Days","Last90Days","Previous90Days"),
+# #                                                                 selected = "Last30Days"
+# #                                                      ),
+#                                                     tabsetPanel(
+#                                                       
+#                                                       tabPanel('by Truck',
+#                                                                                             h3('Efficiency and Utilization by County'),
+#                                                                                             #htmlOutput('historicalCountyView'),
+#                                                                                             h3('Data Table for Historical Analysis')#,
+#                                                                                             #dataTableOutput('historicalCounty')
+#                                                                  ),
+#                                                       
+#                                                       tabPanel('by Operator',
+#                                                                fluidRow(
+#                                                                    
+#                                                                    column(12,
+#                                                                           h3('Truck Level Analysis')#,
+#                                                                           #dataTableOutput('historicalTruck')
+#                                                                           )
+#                                                                            
+#                                                                 )
+#                                                                ),#end panel
+#                                                       tabPanel('by Base Station',
+#                                                                fluidRow(
+#                                                                  
+#                                                                  column(12,
+#                                                                         h3('Truck Level Analysis')#,
+#                                                                         #dataTableOutput('historicalPL')
+#                                                                  )
+#                                                                  
+#                                                                )
+#                                                       ),#end panel
+#                                                       tabPanel('All Pickups',
+#                                                                fluidRow(
+#                                                                  
+#                                                                  column(12,
+#                                                                         h3('Ticket Level Analysis')#,
+#                                                                         #dataTableOutput('historicalTickets')
+#                                                                  )
+#                                                                  
+#                                                                )
+#                                                       )#end panel
+#                                                                
+#                                                     )
+#                                                     )
+#                                              
+#                                              
+#                                            ))
                                 )#end tabset
                          
                          )#end column

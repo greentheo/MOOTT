@@ -43,14 +43,14 @@ shinyServer(function(input, output, session) {
                   OGSample = sample(1:nrow(OG), input$numLeases)
                   OGsub = OG[OGSample,]#input$numLeases),]
                   
-                  #last 3 days of ticket generation
+                  #last hour of tickets + 3 days of forecast generation
                   wells = data.frame(WELL_NAME=rep(OGsub$WELL_NAME, 15), misc=1)
                   OGsub = merge(wells, OGsub, by = "WELL_NAME",all.x = T)
                   OGsub = OGsub %.%
                     group_by(WELL_NAME) %.%
                     mutate(pickups=cumsum(rexp(15, OilRate))) %.%
                     filter(pickups<=3) %.%
-                    mutate(pickupdate=ymd_hms(Sys.time())+edays(pickups)-edays(3))
+                    mutate(pickupdate=ymd_hms(Sys.time())+edays(pickups)-ehours(1))
                   
                   values$OGsub = OGsub
                   values$OGSample = OGSample
@@ -86,14 +86,27 @@ shinyServer(function(input, output, session) {
       numStations = as.numeric(input$numStations)
       #some truck baseStation Assignments
       values$trucksStations = data.frame(truckNumber=1:input$numTrucks, station=sample(1:input$numStations, input$numTrucks, replace = T))  
-      values$trucksInfo = data.frame(truckNumber=1:input$numTrucks, hoursAvail=12, avgSpeed=30)
-      values$trucksPos = data.frame(truckNumber = 1:input$numTrucks, 
-                                    merge(values$trucksStations, values$baseStations, by=""))
-    
+      values$trucksInfo = data.frame(truckNumber=1:input$numTrucks, hoursAvail=12, avgSpeed=30, available=T)
+      updateSelectInput(session, "truckAvailable", choices = values$trucksInfo,selected = 1)
+      updateSelectInput(session, "truckAssign", choices=values$trucksInfo,selected=1)
     }
   })
   
-  
+  observe({
+    if(is.null(values$dispatch) & !is.null(values$OGsub)){
+      dispatch=dispatchQueue(pickups=values$OGsub, values$trucksStations, values$baseStations, 
+                             values$dropOffPoints, pickupWindow=4, values$trucksInfo)
+      values$dispatch = dispatch
+      updateSelectInput(session, "pickupTicket", choices=paste(values$dispatch$dispatch$WELL_NAME, " @ ", values$dispatch$dispatch$pickupdate,sep=""))
+    }
+    
+  })
+
+  observe({
+    if(!is.null(values$trucksInfo)){
+      updateSelectInput(session, "truckAvailableTF", selected = ifelse(values$trucksInfo$available[input$truckAvailable],"Yes", "No"))
+    }
+  })
   
  ## Live View Map
  output$liveView = renderText({
@@ -128,30 +141,38 @@ shinyServer(function(input, output, session) {
    
  })
  
+ 
+ ## doing quasi live dispatch... have to push the button to take it forward the next hour to see how things change.
+ 
  #live ticket generation on top of the existing new ticket data 
  
- liveTickets = reactiveTimer(intervalMs = 1000, session)
- observe({
-   liveTickets()
-   #generate any new tickets that come in at
- })
- 
- liveDispatch = reactiveTimer(intervalMs = 10000, session)
- observe({
-   liveDispatch()
-   
-   #any tickets which haven't been assigned, assign them
- })
+#  liveTickets = reactiveTimer(intervalMs = 1000, session)
+#  observe({
+#    liveTickets()
+#    #generate any new tickets that come in at
+#  })
+#  
+#  liveDispatch = reactiveTimer(intervalMs = 10000, session)
+#  observe({
+#    liveDispatch()
+#    
+#    #any tickets which haven't been assigned, assign them
+#  })
   
  ticketData = reactiveFileReader(intervalMillis = 2000,session = session, filePath = 'data/tickets.rds', readRDS)
 
  output$existingTickets = renderDataTable({
-  
+   windows = seq(min(values$OGsub$pickupdate), max(values$OGsub$pickupdate)+ehours(1), by=ehours(pickupWindow))+1
+   windows = windows[2:length(windows)]
+   pickupsWin = values$OGsub %.% 
+     group_by(pickupdate) %.%
+     mutate(window = which(windows>pickupdate )[1])
    return(
-     with(values$OGsub, data.frame(Pickup=WELL_NAME,
+     with(pickupsWin, data.frame(Pickup=WELL_NAME,
                           County=COUNTY,
                           Created=pickupdate,
-                          Age=round((ymd_hms(Sys.time())-ymd_hms(pickupdate))/ehours(1))
+                          Age=round((ymd_hms(Sys.time())-ymd_hms(pickupdate))/ehours(1),digits = 1),
+                          scheduleType=ifelse(window>1, "forecast", "actual")
                           )
       )
    )
@@ -159,7 +180,7 @@ shinyServer(function(input, output, session) {
    
  })
  
- dispatchQueue=function(pickups, trucksStations, baseStations, dropoffs, pickupWindow = 1, trucksInfo,...,truckAvailability=NULL, futurePickups=NULL){
+ dispatchQueue=function(pickups, trucksStations, baseStations, dropoffs, pickupWindow = 1, trucksInfo,...,truckAvailability=NULL, futurePickups=NULL,windowsAhead=3){
    
    #dispatch priority
    # tries to assign same lease to same truck if possible
@@ -180,23 +201,68 @@ shinyServer(function(input, output, session) {
       group_by(pickupdate) %.%
       mutate(window = which(windows>pickupdate )[1])
     
-    # go window by window and do the dispatch, keep track of the truck hours scheduled and etc.
-    trucksInfo[["hoursScheduled"]] = 0
-    trucksPos
-    for(i in 1:length(windows)){
-      pickupsSub = subset(pickupsWin, window=windows[i])
-      dist = great_circle_distance(lat1 = trucksStations$)
-    }
-    
-   
+    dispatch = pickupOpt(pickupsWin = subset(pickupsWin, window<=windowsAhead), baseStations = baseStations, 
+                         trucksStations = trucksStations,trucksInfo = trucksInfo, dropOffs = dropOffs)
+                        
+   return(dispatch)
  }
 
    
  output$queueTable = renderDataTable({
-   truckQueue=dispatchQueue(pickups=values$OGsub, values$trucksStations, values$baseStations)
+   
+   return(with(values$dispatch$dispatch, data.frame(Pickup = WELL_NAME, 
+                                               Truck = truckAssigned,
+                                               PickupETA = ETAPickup,
+                                               DeliveryETA = ETADropOff,
+                                               scheduleType=ifelse(window>1, "forecast","actual"))
+        ))
    
  })
  
+ output$queueTable2 = renderDataTable({
+  
+  return(with(values$dispatch$dispatch, data.frame(Pickup = WELL_NAME, 
+                                                   Truck = truckAssigned,
+                                                   PickupETA = ETAPickup,
+                                                   DeliveryETA = ETADropOff,
+                                                   scheduleType=ifelse(window>1, "forecast","actual"))
+  ))
+  
+})
+
+ output$queueMap= renderText({
+   withProgress(message = 'Calculation in progress',
+                detail = 'Creating Dispatch Maps...', value = 0, {
+                  incProgress(.5)
+                  df = data.frame(state=c("utah","utah"), level=c(1,2))
+                  utahMap = choroplethMap(df=df, state = 'state',plotVariable = 'level')
+                  routeDispatch = dispatchRoute(values$dispatch$dispatch, baseStations, trucksStations, trucksInfo, dropOffs)
+                  
+                  #jitter the XY a little for easier reading, and change the size of the points
+                  routeDispatch$lat = routeDispatch$lat+rnorm(nrow(routeDispatch), 0, .02)
+                  #routeDispatch$long = routeDispatch$long+rnorm(nrow(routeDispatch), 0, .02)
+                  
+                  #pickups = (OSMMap(values$dispatch$dispatch, lat="LAT_SURF", long="LONG_SURF", popup = paste('Pickup ', values$dispatch$dispatch$WELL_NAME), colorByFactor = T,color = 'truckAssigned',layer = 'Pickups'))
+                  pickupsLine = (OSMMap(routeDispatch, lat="lat", long="long",color = 'truckAssigned',group="truckAssigned",groupType = "LineString",layer = 'Route'))
+                  
+                  routeDispatch[["popup"]] = with(routeDispatch, paste("SiteType:", location, "Truck:", truckAssigned))
+                  pickupsPoint = (OSMMap(routeDispatch, lat="lat", long="long", popup="popup", color = 'truckAssigned',layer = 'Route stops'))
+                  #dropOffs = (OSMMap(values$dropOffPoints, popup = paste('Drop Off ', values$dropOffPoints$dropOff), colorByFactor = F,color = '#0000FF',layer = 'Drop Offs'))
+                  #baseStations = OSMMap(values$baseStations, colorByFactor = F,color = '#FF0000',layer = 'Base Stations')
+                  incProgress(.25)
+#                   values$queueMap = print(addLayers(baseStations, 
+#                                                     addLayers(pickupsLine,
+#                                                       addLayers(pickups, dropOffs))),
+                    values$queueMap = print(addLayers(pickupsLine, pickupsPoint),
+                        returnText=T, 
+                        title="Base Operations Map", 
+                        subtitle='Utah', 
+                        desc='Red - Base Stations <br>Green - Pickups<br>Blue - Drop Off Points')
+                })
+        return(values$queueMap)
+                
+ })
+
  output$baseMap = renderText({
    withProgress(message = 'Calculation in progress',
                                  detail = 'Creating Maps...', value = 0, {
@@ -215,6 +281,32 @@ shinyServer(function(input, output, session) {
                                          desc='Red - Base Stations <br>Green - Pickups<br>Blue - Drop Off Points')
                                  })
  })
+
+output$dispatchStats = renderTable({
+  return(t(values$dispatch$dispatchSummary$dispatch))
+})
+output$dispatchSummaryByTruck = renderDataTable({
+  return((values$dispatch$dispatchSummary$dispatchByTruck))
+})
+output$dispatchSummaryByBaseStation = renderDataTable({
+  return((values$dispatch$dispatchSummary$dispatchByBaseStation))
+})
+
+output$dispatchByCounty = renderDataTable({
+  return((values$dispatch$dispatchSummary$dispatchByCounty))
+})
+
+output$dispatchByField = renderDataTable({
+  return((values$dispatch$dispatchSummary$dispatchByField))
+})
+output$dispatchByCompany = renderDataTable({
+  return((values$dispatch$dispatchSummary$dispatchByCompany)) 
+})
+
+output$trucksInfo = renderDataTable({
+  return(values$trucksInfo)
+})
+
 
  output$historicalView = renderText({
    counties = map_data("county")
