@@ -109,8 +109,8 @@ shinyServer(function(input, output, session) {
   })
   
   observe({
-    
-    
+    input$btnTruckAvailable
+    values$trucksInfo$available[ input$truckAvailable ] = ifelse(input$truckAvailableTF=="No", T, F)
   })
   
  ## Live View Map
@@ -131,6 +131,7 @@ shinyServer(function(input, output, session) {
                   
                   
                   OGsub[["colorGray"]] = gray(1-plotVarNorm)
+                  
                   pickups = (OSMMap(OGsub, lat="LAT_SURF", long="LONG_SURF", 
                                     popup = paste('<h3>Pickup: ', OGsub$WELL_NAME,"</h3><p>Created: ", OGsub$pickupdate,"</p>Age: ",round(plotVar),"</p>"), 
                                     colorByFactor = F,color = 'colorGray',layer = 'Pickups'))

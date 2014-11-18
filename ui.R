@@ -134,7 +134,7 @@ shinyUI(bootstrapPage(title = 'Transportation Analysis Toolbox',
                                                                             label="Available?",
                                                                             choices = c("Yes", "No"),
                                                                             selected = "Yes"),
-                                                               actionButton(inputId = "btnTruckAvailable", label = "Apply", icon=icon(name = 'calendar'))
+                                                               actionButton(inputId = "btnTruckAvailable", label = "Apply", icon=icon(name = 'truck'))
                                                             )
                                                         ),
                                                       hr(),
