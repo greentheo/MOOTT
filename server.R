@@ -108,6 +108,11 @@ shinyServer(function(input, output, session) {
     }
   })
   
+  observe({
+    
+    
+  })
+  
  ## Live View Map
  output$liveView = renderText({
 
