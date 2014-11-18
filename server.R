@@ -50,7 +50,7 @@ shinyServer(function(input, output, session) {
                     group_by(WELL_NAME) %.%
                     mutate(pickups=cumsum(rexp(15, OilRate))) %.%
                     filter(pickups<=3) %.%
-                    mutate(pickupdate=ymd_hms(Sys.time())+edays(pickups)-ehours(1))
+                    mutate(pickupdate=ymd_hms(format(as.POSIXct(Sys.time()), "%Y-%m-%d %H:%M:%S"))+edays(pickups)-ehours(1))
                   
                   values$OGsub = OGsub
                   values$OGSample = OGSample
@@ -94,8 +94,8 @@ shinyServer(function(input, output, session) {
   
   observe({
     if(is.null(values$dispatch) & !is.null(values$OGsub)){
-      dispatch=dispatchQueue(pickups=values$OGsub, values$trucksStations, values$baseStations, 
-                             values$dropOffPoints, pickupWindow=4, values$trucksInfo)
+      dispatch=dispatchQueue(pickups=values$OGsub, trucksStations = values$trucksStations, baseStations = values$baseStations, 
+                             dropOffs=values$dropOffPoints, pickupWindow=4, values$trucksInfo)
       values$dispatch = dispatch
       updateSelectInput(session, "pickupTicket", choices=paste(values$dispatch$dispatch$WELL_NAME, " @ ", values$dispatch$dispatch$pickupdate,sep=""))
     }
@@ -125,7 +125,7 @@ shinyServer(function(input, output, session) {
                   baseStations = OSMMap(values$baseStations, popup = paste('Base Station ', values$baseStations$station), colorByFactor = F,color = '#FF0000',layer = 'Base Stations')
                   
                   OGsub = values$OGsub
-                  plotVar = (ymd_hms(Sys.time())-OGsub$pickupdate)/ehours(1)
+                  plotVar = (ymd_hms(format(as.POSIXct(Sys.time()), "%Y-%m-%d %H:%M:%S"))-OGsub$pickupdate)/ehours(1)
                   plotVarNorm = (plotVar - min(plotVar))/(max(plotVar) - 
                                                             min(plotVar))
                   
@@ -168,7 +168,7 @@ shinyServer(function(input, output, session) {
  #ticketData = reactiveFileReader(intervalMillis = 2000,session = session, filePath = 'data/tickets.rds', readRDS)
 
  output$existingTickets = renderDataTable({
-   windows = seq(min(values$OGsub$pickupdate), max(values$OGsub$pickupdate)+ehours(1), by=ehours(pickupWindow))+1
+   windows = seq(min(values$OGsub$pickupdate), max(values$OGsub$pickupdate)+ehours(1), by=ehours(1))+1
    windows = windows[2:length(windows)]
    pickupsWin = values$OGsub %.% 
      group_by(pickupdate) %.%
@@ -186,7 +186,7 @@ shinyServer(function(input, output, session) {
    
  })
  
- dispatchQueue=function(pickups, trucksStations, baseStations, dropoffs, pickupWindow = 1, trucksInfo,...,truckAvailability=NULL, futurePickups=NULL,windowsAhead=3){
+ dispatchQueue=function(pickups, trucksStations, baseStations, dropOffs, pickupWindow = 1, trucksInfo,...,truckAvailability=NULL, futurePickups=NULL,windowsAhead=3){
    
    #dispatch priority
    # tries to assign same lease to same truck if possible
