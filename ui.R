@@ -9,7 +9,7 @@ library(knitr)
 library(zoo)
 library(OpenStreetMapR)
 library(shiny)
-library(shiny-incubator)
+#library(shinyIncubator)
 
 # datadf = readRDS('data/basicCOTSData.rds')
 # #dataGPS = readRDS('GPS Data')
