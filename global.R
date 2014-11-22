@@ -197,7 +197,7 @@ pickupOpt = function(pickupsWin, baseStations, trucksStations, trucksInfo, dropO
     best=which.min(truckSched$rankRand)
     pickupTickets$truckAssigned[i] = truckSched$truckNumber[best]
     pickupTickets$assignedDropOff[i] = subset(pickupDropoffPairs, WELL_NAME==pickupTickets$WELL_NAME[i])$dropOff
-    pickupTickets$ETAPickup[i] = min(subset(pickupTickets, window==2)$pickupdate)+ #the time now (basically the first in the #2 window section)
+    pickupTickets$ETAPickup[i] = pickupTickets$pickupdate[i] + #the time the ticket came in 
       (truckSched$timeTillAvailable[best])+ #when will it be available
       (truckSched$timetoPickupFromNextAvailable[best]) #actual time to pick up the load
     pickupTickets$ETADropOff[i] = pickupTickets$ETAPickup[i]+ehours(dropOffTime)
@@ -282,7 +282,7 @@ pickupOpt = function(pickupsWin, baseStations, trucksStations, trucksInfo, dropO
               profitPerMile = mean(GrossProfit*200)/mean(mileageToPickup+mileageToDropOff),
               miles = sum(mileageToPickup+mileageToDropOff),
               hours = sum(difftime(ETADropOff,pickupdate, units="hours")),
-              utilization= sum(difftime(ETADropOff,pickupdate, units="hours"))/as.numeric(difftime(max(ETADropOff), min(pickupdate), units="hours"))
+              utilization= sum(difftime(ETADropOff,pickupdate, units="hours"))/  as.numeric(difftime(max(pickupTickets$pickupdate), min(pickupTickets$pickupdate), units="hours")) #sum of their useful driving hours / hours available
     )
   
   pickupTicketsStations = merge(pickupTickets, trucksStations, by.x="truckAssigned", by.y="truckNumber")
@@ -297,10 +297,12 @@ pickupOpt = function(pickupsWin, baseStations, trucksStations, trucksInfo, dropO
               avgMilesToPickup = mean(mileageToPickup),
               avgMilesperLoad = mean(mileageToPickup+mileageToDropOff),
               profitPerMile = mean(GrossProfit*200)/mean(mileageToPickup+mileageToDropOff),
+              miles = sum(mileageToPickup+mileageToDropOff),
+              hours = sum(difftime(ETADropOff,pickupdate, units="hours")),
               milesperTruck = sum(mileageToPickup+mileageToDropOff)/length(unique(truckAssigned)),
               hoursperTruck = sum(difftime(ETADropOff,pickupdate, units="hours"))/length(unique(truckAssigned)),
               loadsperTruck = length(truckAssigned)/length(unique(truckAssigned)),
-              utilization= sum(difftime(ETADropOff,pickupdate, units="hours"))/as.numeric(difftime(max(ETADropOff), min(pickupdate), units="hours"))    
+              utilization= sum(difftime(ETADropOff,pickupdate, units="hours"))/ (as.numeric(difftime(max(ETADropOff), min(pickupdate), units="hours"))*length(unique(truckAssigned)))    
     )
   
   dispatchByDropOff = pickupTickets %.%
@@ -317,7 +319,7 @@ pickupOpt = function(pickupsWin, baseStations, trucksStations, trucksInfo, dropO
               milesperTruck = sum(mileageToPickup+mileageToDropOff)/length(unique(truckAssigned)),
               hoursperTruck = sum(difftime(ETADropOff,pickupdate, units="hours"))/length(unique(truckAssigned)),
               loadsperTruck = length(truckAssigned)/length(unique(truckAssigned)),
-              utilization= sum(difftime(ETADropOff,pickupdate, units="hours"))/as.numeric(difftime(max(ETADropOff), min(pickupdate), units="hours"))    
+              utilization= sum(difftime(ETADropOff,pickupdate, units="hours"))/ (as.numeric(difftime(max(ETADropOff), min(pickupdate), units="hours"))*length(unique(truckAssigned)))    
     )
 #   incProgress(.25)
   #}) #end of with progress

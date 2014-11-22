@@ -95,22 +95,11 @@ shinyServer(function(input, output, session) {
   observe({
     if(is.null(values$dispatch) & !is.null(values$OGsub)){
       dispatch=dispatchQueue(pickups=values$OGsub, trucksStations = values$trucksStations, baseStations = values$baseStations, 
-                             dropOffs=values$dropOffPoints, pickupWindow=4, values$trucksInfo)
+                             dropOffs=values$dropOffPoints, pickupWindow=12, values$trucksInfo)
       values$dispatch = dispatch
       updateSelectInput(session, "pickupTicket", choices=paste(values$dispatch$dispatch$WELL_NAME, " @ ", values$dispatch$dispatch$pickupdate,sep=""))
     }
     
-  })
-
-  observe({
-    if(!is.null(values$trucksInfo)){
-      updateSelectInput(session, "truckAvailableTF", selected = ifelse(values$trucksInfo$available[input$truckAvailable],"Yes", "No"))
-    }
-  })
-  
-  observe({
-    input$btnTruckAvailable
-    values$trucksInfo$available[ input$truckAvailable ] = ifelse(input$truckAvailableTF=="No", T, F)
   })
   
  ## Live View Map
@@ -242,7 +231,7 @@ shinyServer(function(input, output, session) {
                   incProgress(.5)
                   df = data.frame(state=c("utah","utah"), level=c(1,2))
                   utahMap = choroplethMap(df=df, state = 'state',plotVariable = 'level')
-                  routeDispatch = dispatchRoute(values$dispatch$dispatch, baseStations, trucksStations, trucksInfo, dropOffs)
+                  routeDispatch = dispatchRoute(values$dispatch$dispatch, values$baseStations, values$trucksStations, values$trucksInfo, values$dropOffPoints)
                   
                   #jitter the XY a little for easier reading, and change the size of the points
                   routeDispatch$lat = routeDispatch$lat+rnorm(nrow(routeDispatch), 0, .02)
@@ -286,6 +275,33 @@ shinyServer(function(input, output, session) {
                                          subtitle='Utah', 
                                          desc='Red - Base Stations <br>Green - Pickups<br>Blue - Drop Off Points')
                                  })
+ })
+
+ output$baseStationLoad = renderDataTable({
+   
+   #for load balancing to achieve the same milesperTruck
+   stationCounts = data.frame(station=names(table(values$trucksStations$station)), trucks=as.numeric(table(values$trucksStations$station)))
+   sumByStation = merge(stationCounts, values$dispatch$dispatchSummary$dispatchByBaseStation, by="station", all.x = T)[,c("miles", "trucks", "station", "loads")]
+   sumByStation[is.na(sumByStation)]=0
+   
+   overUnder = sumByStation %.%
+     arrange(desc(loads)) %.%
+     mutate(milestruck = (miles/trucks)*loads,
+            trucksNeeded = milestruck/sum(milestruck) *  sum(trucks),
+            trucksOverUnder = trucksNeeded-trucks
+            ) %.%
+     arrange(desc(trucksNeeded))
+   
+   
+   #show the overload alert
+   systemOverload = mean(values$dispatch$dispatchSummary$dispatchByBaseStation$utilization)
+   
+   showshinyalert(session,"overLoadAlert",
+                  paste("The system is in an ", ifelse(systemOverload>=.5, "overload", "underload"), "condition."),
+                  ifelse(systemOverload>=0, "warning", "success"))
+   
+   
+   return(with(overUnder, data.frame(BaseStation=station, loads,  trucks, loadMilesPerTruck=milestruck, trucksNeeded=round(trucksNeeded), trucksOverUnder=round(trucksOverUnder))))
  })
 
 output$dispatchStats = renderTable({

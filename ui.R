@@ -9,6 +9,7 @@ library(knitr)
 library(zoo)
 library(OpenStreetMapR)
 library(shiny)
+library(shinysky)
 #library(shinyIncubator)
 
 # datadf = readRDS('data/basicCOTSData.rds')
@@ -54,7 +55,7 @@ shinyUI(bootstrapPage(title = 'Transportation Analysis Toolbox',
                                 tabsetPanel(
                                   tabPanel(title = 'Live',
                                            fluidRow(
-                                             column(9,
+                                             column(12,
                                                     tags$head(tags$script(src="leaflet.js"),
                                                               tags$link(rel = "stylesheet", type = "text/css", href = "leaflet.css"),
                                                               tags$script(src="jquery-1.10.1.min.js"),
@@ -63,8 +64,17 @@ shinyUI(bootstrapPage(title = 'Transportation Analysis Toolbox',
                                                     
                                                     h3("Live System View"),
                                                     htmlOutput('liveView'),
-                                                    h3("Current Tickets"),
-                                                    dataTableOutput('existingTickets')
+                                                    fluidRow(
+                                                      column(6,
+                                                             h3("Current Tickets"),
+                                                             dataTableOutput('existingTickets')
+                                                             ),
+                                                      column(6,
+                                                             h3("Truck Locations"),
+                                                             dataTableOutput('currentTruckLocation')
+                                                             )
+                                                      
+                                                      )
                                                     )
                                              
                                            )
@@ -134,7 +144,10 @@ shinyUI(bootstrapPage(title = 'Transportation Analysis Toolbox',
                                                                             label="Available?",
                                                                             choices = c("Yes", "No"),
                                                                             selected = "Yes"),
-                                                               actionButton(inputId = "btnTruckAvailable", label = "Apply", icon=icon(name = 'truck'))
+                                                               #actionButton(inputId = "btnTruckAvailable", label = "Apply", icon=icon(name = 'truck')),
+                                                               
+                                                               submitButton(text = "Apply",icon = icon('truck')),
+                                                               textOutput('truckAvailableText')
                                                             )
                                                         ),
                                                       hr(),
@@ -218,10 +231,15 @@ shinyUI(bootstrapPage(title = 'Transportation Analysis Toolbox',
 #                                   ),
                                   tabPanel(title='Resource Allocation',
                                            tabsetPanel(
-                                             tabPanel(title='Base Map',
-                                                      h3('Pickups, Dropoffs and Base Stations'),
-                                                      htmlOutput('baseMap')
-                                                      )
+                                             tabPanel(title='Station Load',
+                                                      shinyalert("overLoadAlert", click.hide = TRUE, auto.close.after = NULL),
+                                                      #h3('Over and Underloaded Base Stations'),
+                                                      #htmlOutput('baseMap'),
+                                                      h3('Load Balance by BaseStation'),
+                                                      dataTableOutput('baseStationLoad')
+                                                      ),
+                                             tabPanel(title='Move Trucks',
+                                                      h3('ReAssign trucks to '))
                                              )
                                            )
 #                                   tabPanel(title = 'Analysis',
