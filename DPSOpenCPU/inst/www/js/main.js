@@ -11,7 +11,7 @@ $(document).ready(function() {
       
       //retrieve the returned object async
       session.getObject(function(data){
-        
+        console.log(data);
           //fill in the tables with the demoData (or in a production setting, the modified user data...we wont need R here)
           makeTables($('#baseStationsTable tbody'), ["station", "lat", "long"], data.baseStations);
           makeTables($('#trucksStationsTable tbody'), ["truckNumber", "station"], data.trucksStations);
@@ -25,8 +25,6 @@ $(document).ready(function() {
     })
     
     //TODO - include the plugins from https://code.google.com/p/jquery-datatables-editable/ to make these tables editable and push the changes back to a database
-    
-    
     
     
     //Now that the UI is loaded, do the dispatch, when it's done enable upload and modification buttons
