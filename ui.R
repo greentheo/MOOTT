@@ -28,10 +28,15 @@ shinyUI(bootstrapPage(title = 'Transportation Analysis Toolbox',
                                img(src='RA-logo-color.png', style="max-height: 80px"),
                                h1('Multi Objective Optimization Transportation Toolbox'),
                                h4('Powered by ', a(href="http://royaltyanalytics.com", "Royalty Analytics")),
+                               hr(),
+                               p("Current Time:"),
+                               textOutput('currentTime'),
+                               actionButton("moveForward",label = "Time Step Forward", icon = icon("magic")),
                                hr()
                                )
                         ),
                        fluidRow(
+                         ## need to remove these... too complicated
                          column(3,
                                 selectInput(inputId = "numTrucks",
                                             label="Number of Trucks",
@@ -239,7 +244,10 @@ shinyUI(bootstrapPage(title = 'Transportation Analysis Toolbox',
                                                       dataTableOutput('baseStationLoad')
                                                       ),
                                              tabPanel(title='Move Trucks',
-                                                      h3('ReAssign trucks to '))
+                                                      h3('ReAssign trucks to '),
+                                                      dataTableOutput('reassignTrucks')
+                                                      )
+                                                      
                                              )
                                            )
 #                                   tabPanel(title = 'Analysis',

@@ -95,10 +95,16 @@ shinyServer(function(input, output, session) {
   observe({
     if(is.null(values$dispatch) & !is.null(values$OGsub)){
       dispatch=dispatchQueue(pickups=values$OGsub, trucksStations = values$trucksStations, baseStations = values$baseStations, 
-                             dropOffs=values$dropOffPoints, pickupWindow=12, values$trucksInfo)
+                             dropOffs=values$dropOffPoints, pickupWindow=1, values$trucksInfo)
       values$dispatch = dispatch
       updateSelectInput(session, "pickupTicket", choices=paste(values$dispatch$dispatch$WELL_NAME, " @ ", values$dispatch$dispatch$pickupdate,sep=""))
     }
+    
+  })
+  
+  observe({
+    input$moveForward
+    print('moveForward')
     
   })
   
@@ -190,6 +196,10 @@ shinyServer(function(input, output, session) {
    # because we don't actually know what's in the future queue, only what's on the plate now
    # however, if we include futurePickups in the decision making we can 
    # optimize considering what's coming in
+   withProgress(message = 'Calculation in progress',
+                detail = 'Creating Dispatch Schedule...', value = 0, {
+                  incProgress(.5)
+                  
     windows = seq(min(pickups$pickupdate), max(pickups$pickupdate)+ehours(1), by=ehours(pickupWindow))+1
     windows = windows[2:length(windows)]
     pickupsWin = pickups %.% 
@@ -198,6 +208,7 @@ shinyServer(function(input, output, session) {
     
     dispatch = pickupOpt(pickupsWin = subset(pickupsWin, window<=windowsAhead), baseStations = baseStations, 
                          trucksStations = trucksStations,trucksInfo = trucksInfo, dropOffs = dropOffs)
+                })
                         
    return(dispatch)
  }
@@ -329,6 +340,15 @@ output$trucksInfo = renderDataTable({
   return(values$trucksInfo)
 })
 
+output$reassignTrucks = renderDataTable({
+  
+  return(values$trucksStations)
+})
 
+output$currentTime = renderText({
+  
+  #return(as.character(Sys.time()))
+  return(input$moveForward)
+})
 
 })

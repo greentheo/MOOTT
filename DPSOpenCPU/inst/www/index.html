@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>DPS - Dispatch Positioning System</title>
+
+   
+
+
+    
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.css" rel="stylesheet">
+    
+
+    <!-- Add custom CSS here -->
+    <link href="css/sb-admin.css" rel="stylesheet">
+    <link rel="stylesheet" href="font-awesome/css/font-awesome.min.css">
+    <!-- Page Specific CSS -->
+    <!--<link rel="stylesheet" href="http://cdn.oesmith.co.uk/morris-0.4.3.min.css">-->
+    <link rel="stylesheet" href="css/morris-0.4.3.min.css">
+    
+    <!-- OpenCPU client library -->
+    <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="http://cdn.opencpu.org/opencpu-0.4.js"></script>
+    
+    <!-- DataTables -->
+    <script src="http://cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" href="http://cdn.datatables.net/1.10.4/css/jquery.dataTables.css">
+    
+    <!--backbone-->
+    <script src="js/underscore-min.js"></script>
+    <script src="js/backbone-min.js"></script>
+    
+     <!--main JS functionality -->
+    <script src="js/main.js"></script>
+    
+  </head>
+
+  <body>
+
+    <div id="wrapper">
+
+      <!-- Sidebar -->
+      <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="index.html">DPS</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+          <ul class="nav navbar-nav side-nav" data-tabs="tabs">
+            <li class="active"><a href="#Dispatch" role='tab' data-toggle="tab"><i class="fa fa-truck t-o"></i> Dispatch Queue</a></li>
+            <li><a href="#ResourceAllocation" data-toggle="tab"><!--<a href="charts.html">--><i class="fa fa-truck"></i> Resource Allocation</a></li>
+            <li><a href="#Reports" data-toggle="tab"><i class="fa fa-bar-chart-o"></i> Analysis</a></li>
+            <li><a href="#System" role='tab' data-toggle="tab"><i class="fa fa-gears"></i> System Config</a></li>
+          </ul>
+
+          <ul class="nav navbar-nav navbar-right navbar-user">
+            <li class="dropdown alerts-dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-bell"></i> Alerts <span class="badge">3</span> <b class="caret"></b></a>
+              <ul class="dropdown-menu">
+                <li><a href="#">Default <span class="label label-default">Default</span></a></li>
+                <li><a href="#">Primary <span class="label label-primary">Primary</span></a></li>
+                <li><a href="#">Success <span class="label label-success">Success</span></a></li>
+                <li><a href="#">Info <span class="label label-info">Info</span></a></li>
+                <li><a href="#">Warning <span class="label label-warning">Warning</span></a></li>
+                <li><a href="#">Danger <span class="label label-danger">Danger</span></a></li>
+                <li class="divider"></li>
+                <li><a href="#">View All</a></li>
+              </ul>
+            </li>
+            <li class="dropdown user-dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-user"></i>UserName<b class="caret"></b></a>
+              <ul class="dropdown-menu">
+                <li><a href="#"><i class="fa fa-user"></i> Profile</a></li>
+                <li><a href="#"><i class="fa fa-envelope"></i> Inbox <span class="badge">7</span></a></li>
+                <li><a href="#"><i class="fa fa-gear"></i> Settings</a></li>
+                <li class="divider"></li>
+                <li><a href="#"><i class="fa fa-power-off"></i> Log Out</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div><!-- /.navbar-collapse -->
+      </nav>
+
+      <div id="page-wrapper" class="tab-content">
+      
+        <div role='tabpanel' class="tab-pane active" id="Dispatch">
+          <div class="row">
+            <div class="col-lg-12">
+              <h1>Dispatch Queue <small>View and Modify the Current Dispatch Queue</small></h1>
+              <ol class="breadcrumb">
+                <li class="active"><i class="fa fa-truck"></i>Queue</li>
+              </ol>
+            </div>
+          </div><!-- /.row -->
+  
+          <div class="row">
+            <div class="col-lg-3">
+              <div class="panel panel-success">
+                <div class="panel-heading">
+                  <div class="row">
+                    <div class="col-xs-6">
+                      <i class="fa fa-truck fa-5x"></i>
+                    </div>
+                    <div class="col-xs-6 text-right">
+                      <p class="announcement-heading">--</p>
+                      <p class="announcement-text">Efficiency</p>
+                    </div>
+                  </div>
+                </div>
+                <a href="#">
+                  <div class="panel-footer announcement-bottom">
+                    <div class="row">
+                      <div class="col-xs-6">
+                        View Efficiency Metrics
+                      </div>
+                      <div class="col-xs-6 text-right">
+                        <i class="fa fa-arrow-circle-right"></i>
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            </div>
+            <div class="col-lg-3">
+              <div class="panel panel-warning">
+                <div class="panel-heading">
+                  <div class="row">
+                    <div class="col-xs-6">
+                      <i class="fa fa-truck fa-5x"></i>
+                    </div>
+                    <div class="col-xs-6 text-right">
+                      <p class="announcement-heading">--</p>
+                      <p class="announcement-text">Load</p>
+                    </div>
+                  </div>
+                </div>
+                <a href="#">
+                  <div class="panel-footer announcement-bottom">
+                    <div class="row">
+                      <div class="col-xs-6">
+                        View Load Metrics
+                      </div>
+                      <div class="col-xs-6 text-right">
+                        <i class="fa fa-arrow-circle-right"></i>
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            </div>
+            <div class="col-lg-3">
+              <div class="panel panel-danger">
+                <div class="panel-heading">
+                  <div class="row">
+                    <div class="col-xs-6">
+                      <i class="fa fa-clock-o fa-5x"></i>
+                    </div>
+                    <div class="col-xs-6 text-right">
+                      <p class="announcement-heading">--</p>
+                      <p class="announcement-text">Service Time</p>
+                    </div>
+                  </div>
+                </div>
+                <a href="#">
+                  <div class="panel-footer announcement-bottom">
+                    <div class="row">
+                      <div class="col-xs-6">
+                        View Service Metrics 
+                      </div>
+                      <div class="col-xs-6 text-right">
+                        <i class="fa fa-arrow-circle-right"></i>
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            </div>
+            <!--<div class="col-lg-3">
+              <div class="panel panel-danger">
+                <div class="panel-heading">
+                  <div class="row">
+                    <div class="col-xs-6">
+                      <i class="fa fa-eject fa-5x"></i>
+                    </div>
+                    <div class="col-xs-6 text-right">
+                      <p class="announcement-heading">--</p>
+                      <p class="announcement-text"></p>
+                    </div>
+                  </div>
+                </div>
+                <a href="#">
+                  <div class="panel-footer announcement-bottom">
+                    <div class="row">
+                      <div class="col-xs-6">
+                        Complete Orders
+                      </div>
+                      <div class="col-xs-6 text-right">
+                        <i class="fa fa-arrow-circle-right"></i>
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            </div>-->
+          </div><!-- /.row -->
+  
+        
+      <div class="row">
+        <div class="col-lg-9">
+          <h2>Dispatch Queue</h2>
+          <table id="dispatchQueue" class="display" cellspacing="0" width="100%">
+            <thead>
+                <tr>
+                    <th>Truck ID</th>
+                    <th>Load Name</th>
+                    <th>Requested Date</th>
+                    <th>Scheduled Date</th>
+                    <th>Age</th>
+                    <th>Type</th>
+                </tr>
+            </thead>
+            <tfoot>
+                <tr>
+                    <th>Truck ID</th>
+                    <th>Load Name</th>
+                    <th>Requested Date</th>
+                    <th>Scheduled Date</th>
+                    <th>Age</th>
+                    <th>Type</th>
+                </tr>
+            </tfoot>
+          <tbody>
+          </tbody>
+          </table>
+        </div>
+      </div>
+  
+         
+         </div><!-- tab content Dispatch Queue-->
+        <div class="tab-pane" id="ResourceAllocation">
+          <div class="row">
+            <div class="col-lg-12">
+              <h1>Regional <small>Operations Overview</small></h1>
+              <ol class="breadcrumb">
+                <li class="active"><i class="fa fa-truck"></i> Regional Dashboard</li>
+              </ol>
+              
+            </div>
+          </div><!-- /.row -->
+  
+          <div class="row">
+            <div class="col-lg-12">
+              <div class="panel panel-info">
+                <div class="panel-heading">
+                  <h3 class="panel-title">Panel info</h3>
+                </div>
+                <div class="panel-body">
+                  There are 4 things to notice in these sets of charts:
+                  <ol>
+                    <li>There is considerable variablity between regions, both in trend and pattern</li>
+                    <li>Notice also that the pattern of 5 days efficient, 2 days lower efficiency holds true across all regions, but is less obvious in some regions.
+                    <li>Individually there is considerable variability between days of operation in terms of both utilization (%Loaded Miles) and efficiency (Bbl per Mile), but Plainville is the most consistent.</li>
+                    <li>There is a relationship between utilization and efficiency, greater utilization implies greater efficiency and vice versa</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+  	        <div class="col-lg-9">
+  		        <div class="panel panel-primary">
+  	              <div class="panel-heading">
+  	                <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i> Efficiency by Day</h3>
+  	              </div>
+  	              <div class="panel-body">
+                    <img src="plots/Regionally_Efficiency_byDay.png" width="100%">
+  	                <!-- <div id="morris-chart-area"></div> -->
+  	              </div>
+  	              
+  	            </div>	
+  	        </div>
+            </div>
+            <div class="row">
+  	        <div class="col-lg-9">
+  		        <div class="panel panel-primary">
+  	              <div class="panel-heading">
+  	                <h3 class="panel-title"><i class="fa fa-map-marker"></i> Utilization by Day</h3>
+  	              </div>
+  	              <div class="panel-body">
+                  <img src="plots/Regionally_Utilization_byDay.png" width="100%">
+  	                <!-- <div id="morris-chart-donut2"></div>
+  	                <div class="text-right">
+  	                  <a href="#">View Details<i class="fa fa-arrow-circle-right"></i></a>
+  	                </div> -->
+  	              </div>
+  	            </div>	
+  	        </div>
+          </div>
+  
+          <div class="row">
+  	        <div class="col-lg-6">
+  		        <div class="panel panel-primary">
+  	              <div class="panel-heading">
+  	                <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i> Utilization by Day</h3>
+  	              </div>
+  	              <div class="panel-body">
+  	                <!-- <div id="morris-chart-area"></div> -->
+  	              </div>
+  	              
+  	            </div>	
+  	        </div>
+  	        <div class="col-lg-6">
+  		        <div class="panel panel-primary">
+  	              <div class="panel-heading">
+  	                <h3 class="panel-title"><i class="fa fa-map-marker"></i> Utilization by Region</h3>
+  	              </div>
+  	              <div class="panel-body">
+  	                <!--<div id="morris-chart-donut2"></div>-->
+  	                <div class="text-right">
+  	                  <a href="#">View Details<i class="fa fa-arrow-circle-right"></i></a>
+  	                </div>
+  	              </div>
+  	            </div>	
+  	        </div>
+          </div>
+         
+  
+         </div><!--tab content Resource Allocation-->
+        <div class="tab-pane" id="Reports">
+         
+          <div class="row">
+            <div class="col-lg-12">
+              <h1>Wynnewood <small>Operations Overview</small></h1>
+              <ol class="breadcrumb">
+                <li class="active"><i class="fa fa-truck"></i> Wynnewood Dashboard</li>
+              </ol>
+              
+            </div>
+          </div><!-- /.row -->
+          <div class="row">
+            <div class="col-lg-3">
+              <div class="panel panel-success">
+                <div class="panel-heading">
+                  <div class="row">
+                    <div class="col-xs-6">
+                      <i class="fa fa-truck fa-5x"></i>
+                    </div>
+                    <div class="col-xs-6 text-right">
+                      <p class="announcement-heading">--</p>
+                      <p class="announcement-text">Efficiency</p>
+                    </div>
+                  </div>
+                </div>
+                <a href="#">
+                  <div class="panel-footer announcement-bottom">
+                    <div class="row">
+                      <div class="col-xs-6">
+                        View Efficiency
+                      </div>
+                      <div class="col-xs-6 text-right">
+                        <i class="fa fa-arrow-circle-right"></i>
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            </div>
+            <div class="col-lg-3">
+              <div class="panel panel-warning">
+                <div class="panel-heading">
+                  <div class="row">
+                    <div class="col-xs-6">
+                      <i class="fa fa-truck fa-5x"></i>
+                    </div>
+                    <div class="col-xs-6 text-right">
+                      <p class="announcement-heading">--</p>
+                      <p class="announcement-text">Utilization</p>
+                    </div>
+                  </div>
+                </div>
+                <a href="#">
+                  <div class="panel-footer announcement-bottom">
+                    <div class="row">
+                      <div class="col-xs-6">
+                        View Utilization
+                      </div>
+                      <div class="col-xs-6 text-right">
+                        <i class="fa fa-arrow-circle-right"></i>
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            </div>
+            <div class="col-lg-3">
+              <div class="panel panel-danger">
+                <div class="panel-heading">
+                  <div class="row">
+                    <div class="col-xs-6">
+                      <i class="fa fa-clock-o fa-5x"></i>
+                    </div>
+                    <div class="col-xs-6 text-right">
+                      <p class="announcement-heading">--</p>
+                      <p class="announcement-text">Service Time</p>
+                    </div>
+                  </div>
+                </div>
+                <a href="#">
+                  <div class="panel-footer announcement-bottom">
+                    <div class="row">
+                      <div class="col-xs-6">
+                        Service Time 
+                      </div>
+                      <div class="col-xs-6 text-right">
+                        <i class="fa fa-arrow-circle-right"></i>
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            </div>
+            <div class="col-lg-3">
+              <div class="panel panel-danger">
+                <div class="panel-heading">
+                  <div class="row">
+                    <div class="col-xs-6">
+                      <i class="fa fa-eject fa-5x"></i>
+                    </div>
+                    <div class="col-xs-6 text-right">
+                      <p class="announcement-heading">--</p>
+                      <p class="announcement-text">Rejects</p>
+                    </div>
+                  </div>
+                </div>
+                <a href="#">
+                  <div class="panel-footer announcement-bottom">
+                    <div class="row">
+                      <div class="col-xs-6">
+                        Complete Orders
+                      </div>
+                      <div class="col-xs-6 text-right">
+                        <i class="fa fa-arrow-circle-right"></i>
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            </div>
+          </div><!-- /.row -->
+          <div class="row">
+  	        <div class="col-lg-6">
+  		        <div class="panel panel-primary">
+  	              <div class="panel-heading">
+  	                <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i> Efficiency by Day</h3>
+  	              </div>
+  	              <div class="panel-body">
+  	                <!--<div id="morris-chart-area"></div>-->
+  	              </div>
+  	              
+  	            </div>	
+  	        </div>
+  	        <div class="col-lg-6">
+  		        <div class="panel panel-primary">
+  	              <div class="panel-heading">
+  	                <h3 class="panel-title"><i class="fa fa-map-marker"></i> Efficiency by Region</h3>
+  	              </div>
+  	              <div class="panel-body">
+  	                <!--<div id="morris-chart-donut2"></div>-->
+  	                <div class="text-right">
+  	                  <a href="#">View Details<i class="fa fa-arrow-circle-right"></i></a>
+  	                </div>
+  	              </div>
+  	            </div>	
+  	        </div>
+          </div>
+  
+          <div class="row">
+  	        <div class="col-lg-6">
+  		        <div class="panel panel-primary">
+  	              <div class="panel-heading">
+  	                <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i> Utilization by Day</h3>
+  	              </div>
+  	              <div class="panel-body">
+  	                <!--<div id="morris-chart-area"></div>-->
+  	              </div>
+  	              
+  	            </div>	
+  	        </div>
+  	        <div class="col-lg-6">
+  		        <div class="panel panel-primary">
+  	              <div class="panel-heading">
+  	                <h3 class="panel-title"><i class="fa fa-map-marker"></i> Utilization by Region</h3>
+  	              </div>
+  	              <div class="panel-body">
+  	                <!--<div id="morris-chart-donut2"></div>-->
+  	                <div class="text-right">
+  	                  <a href="#">View Details<i class="fa fa-arrow-circle-right"></i></a>
+  	                </div>
+  	              </div>
+  	            </div>	
+  	        </div>
+          </div>
+         </div><!--tab content Reports-->
+        <div role='tabpanel' class="tab-pane" id="System">
+          <div class="row">
+            <div class="col-lg-12">
+              <h1>System Configuration <small>Base Stations, Vehicles, Drivers and Pickup Locations</small></h1>
+              <ol class="breadcrumb">
+                <li class="active"><i class="fa fa-gears"></i>Configuration</li>
+              </ol>
+              
+            </div>
+          </div><!-- /.row -->
+          <div class="row">
+          <div class="col-lg-6">
+          <h2>Trucks - Stations Assignments <small>(Click to Edit)</small></h2>
+          
+              <table id="trucksStationsTable" class="display" cellspacing="0" width="100%">
+                <thead>
+                <tr>
+                    <th>Truck</th>
+                    <th>Station</th>
+                </tr>
+            </thead>
+                <tfoot>
+                <tr>
+                    <th>Truck</th>
+                    <th>Station</th>
+                </tr>
+            </tfoot>
+                <tbody>
+            </tbody>
+              </table>
+            </div><!--col-->
+            <div class="col-lg-6">
+          <h2>Base Stations <small>(Click to Edit)</small></h2>
+          
+              <table id="baseStationsTable" class="display" cellspacing="0" width="100%">
+                <thead>
+                <tr>
+                    <th>Station</th>
+                    <th>Lat</th>
+                    <th>Long</th>
+                </tr>
+            </thead>
+                <tfoot>
+                <tr>
+                    <th>Station</th>
+                    <th>Lat</th>
+                    <th>Long</th>
+                </tr>
+              </tfoot>
+                <tbody>
+            </tbody>
+              </table>
+            </div><!--col-->
+            
+          </div><!-- /.row -->
+          <div class="row">
+          <div class="col-lg-6">
+          <h2>Truck Information <small>(Click to Edit)</small></h2>
+          
+              <table id="trucksInfoTable" class="display" cellspacing="0" width="100%">
+                <thead>
+                <tr>
+                    <th>Truck</th>
+                    <th>Available</th>
+                    <th>AvgSpeed</th>
+                </tr>
+            </thead>
+                <tfoot>
+                <tr>
+                    <th>Truck</th>
+                    <th>Available</th>
+                    <th>AvgSpeed</th>
+                </tr>
+            </tfoot>
+                <tbody>
+            </tbody>
+              </table>
+            </div><!--col-->
+            <div class="col-lg-6">
+          <h2>DropOff Points <small>(Click to Edit)</small></h2>
+          
+              <table id="dropOffPointsTable" class="display" cellspacing="0" width="100%">
+                <thead>
+                <tr>
+                    <th>DropOff</th>
+                    <th>Lat</th>
+                    <th>Long</th>
+                </tr>
+            </thead>
+                <tfoot>
+                <tr>
+                    <th>DropOff</th>
+                    <th>Lat</th>
+                    <th>Long</th>
+                </tr>
+              </tfoot>
+                <tbody>
+            </tbody>
+              </table>
+            </div><!--col-->
+            
+          </div><!-- /.row -->
+  
+         </div><!--tab content System Config-->
+         
+      </div><!-- /#page-wrapper tab content-->
+
+    </div><!-- /#wrapper -->
+
+
+  </body>
+</html>
