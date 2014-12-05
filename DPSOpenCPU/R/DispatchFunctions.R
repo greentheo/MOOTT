@@ -1,3 +1,10 @@
+#' Calculate distances over the curvature of the earth
+#' @param lat1 a vector of lattitudes to start at
+#' @param long1 a vector of longitudes to start at
+#' @param lat2 a vector of lattitues to end at
+#' @param long2 a vector of longitudes to end at
+#' @return numeric vector of distances
+#' @export
 great_circle_distance <- function(lat1, long1, lat2, long2) {
   lat1=lat1*pi/180
   lat2=lat2*pi/180
@@ -9,6 +16,35 @@ great_circle_distance <- function(lat1, long1, lat2, long2) {
   7926 * asin(sqrt(a * a + cos(lat1) * cos(lat2) * b * b))
 }
 
+#' Dispatch a set of scheduled pickups
+#' @param data a list of various data items returned from baseData, or passed in via JSON 
+#' @return data.frame of dispatches
+#' @export
+dispatchQueue=function(data, pickupWindow=1){
+  
+
+  #pickups, trucksStations, baseStations, dropOffs, pickupWindow = 1, trucksInfo,...,truckAvailability=NULL, futurePickups=NULL,windowsAhead=3){
+  
+   windows = seq(min(data$OGsub$pickupdate), max(data$OGsub$pickupdate)+ehours(1), by=ehours(pickupWindow))+1
+   windows = windows[2:length(windows)]
+   pickupsWin = pickups %.% 
+     group_by(pickupdate) %.%
+     mutate(window = which(windows>pickupdate )[1])1/.00
+   
+   dispatch = pickupOpt(pickupsWin = subset(pickupsWin, window<=windowsAhead), baseStations = data$baseStations, 
+                        trucksStations = data$trucksStations,trucksInfo = data$trucksInfo, dropOffs = data$dropOffs)
+
+  return(dispatch)
+}
+
+#' A function which does the actual dispatching and metric calculations
+#' @param pickupsWin 
+#' @param baseStations
+#' @param trucksStations
+#' @param trucksInfo
+#' @param dropOffs
+#' @param truckLocation
+#' @import dplyr, plyr, lubridate
 pickupOpt = function(pickupsWin, baseStations, trucksStations, trucksInfo, dropOffs,...,truckLocation=NULL){
   
 #   withProgress(message = 'Dispatch Optimization in progress',

@@ -11,7 +11,7 @@ $(document).ready(function() {
       
       //retrieve the returned object async
       session.getObject(function(data){
-        console.log(data);
+       
           //fill in the tables with the demoData (or in a production setting, the modified user data...we wont need R here)
           makeTables($('#baseStationsTable tbody'), ["station", "lat", "long"], data.baseStations);
           makeTables($('#trucksStationsTable tbody'), ["truckNumber", "station"], data.trucksStations);
@@ -29,7 +29,7 @@ $(document).ready(function() {
     
     //Now that the UI is loaded, do the dispatch, when it's done enable upload and modification buttons
     
-    //var req = ocpu.call('dispatch', ....)
+    var req = ocpu.call('dispatch', )
     
     //assign functionality to each of the buttons on the UI (like upload a spreadsheet, download a spreadsheet, calculate new dispatch... etc.)
     
