@@ -1,0 +1,44 @@
+---
+title: "dispatchFunctionalTest"
+author: "Theodore Van Rooy"
+date: "December 8, 2014"
+output: html_document
+---
+
+This document tests out all of the funcitonality and reports on what results from the function calls.  
+
+Helps to test out which parts of the code might not be working.
+
+### Base Data Generation
+
+```{r}
+library(DPSOpenCPU)
+library(knitr)
+
+
+demoData = baseData()
+
+demoData
+
+```
+
+### Dispatching
+
+```{r}
+
+dispatch = dispatchQueue(demoData,windowsAhead = 3)
+
+### make a plot of the dispatch locations
+
+
+### summary tables
+
+
+```
+
+
+### Modifying the base data and assumptions
+
+
+### Modifying the queue, pickups and dynamically rescheduling the dispatch
+

@@ -20,19 +20,20 @@ great_circle_distance <- function(lat1, long1, lat2, long2) {
 #' @param data a list of various data items returned from baseData, or passed in via JSON 
 #' @return data.frame of dispatches
 #' @export
-dispatchQueue=function(data, pickupWindow=1){
+dispatchQueue=function(data, pickupWindow=1,windowsAhead=1){
   
 
   #pickups, trucksStations, baseStations, dropOffs, pickupWindow = 1, trucksInfo,...,truckAvailability=NULL, futurePickups=NULL,windowsAhead=3){
   
    windows = seq(min(data$OGsub$pickupdate), max(data$OGsub$pickupdate)+ehours(1), by=ehours(pickupWindow))+1
    windows = windows[2:length(windows)]
-   pickupsWin = pickups %.% 
+   pickupsWin = data$OGsub %.% 
      group_by(pickupdate) %.%
-     mutate(window = which(windows>pickupdate )[1])1/.00
+     mutate(window = which(windows>pickupdate )[1])
    
+  
    dispatch = pickupOpt(pickupsWin = subset(pickupsWin, window<=windowsAhead), baseStations = data$baseStations, 
-                        trucksStations = data$trucksStations,trucksInfo = data$trucksInfo, dropOffs = data$dropOffs)
+                        trucksStations = data$trucksStations,trucksInfo = data$trucksInfo, dropOffs = data$dropOffPoints)
 
   return(dispatch)
 }
@@ -44,7 +45,6 @@ dispatchQueue=function(data, pickupWindow=1){
 #' @param trucksInfo
 #' @param dropOffs
 #' @param truckLocation
-#' @import dplyr, plyr, lubridate
 pickupOpt = function(pickupsWin, baseStations, trucksStations, trucksInfo, dropOffs,...,truckLocation=NULL){
   
 #   withProgress(message = 'Dispatch Optimization in progress',
@@ -52,8 +52,9 @@ pickupOpt = function(pickupsWin, baseStations, trucksStations, trucksInfo, dropO
 #                  incProgress(.01)
                  
   pickupsWin=pickupsWin %.%
-    mutate(day = format(ymd_hms(pickupdate), "%d")) %.%
-    arrange(pickupdate)
+    arrange(ymd_hms(pickupdate)) %.% 
+    mutate(day = format(ymd_hms(pickupdate), "%d"))
+    
   
   pickupDropoffPairs = pickupsWin %.%
     group_by(WELL_NAME) %.%
@@ -125,7 +126,7 @@ pickupOpt = function(pickupsWin, baseStations, trucksStations, trucksInfo, dropO
                  nextDropOff=pickupdate[c(which(ETADropOff>pickupTickets$pickupdate[i]), length(pickupdate))[1] ]
                  ) 
       
-      truckLastLocation = ddply(truckLast, .(truckAssigned), function(x){
+      truckLastLocation = plyr::ddply(truckLast, .variables = c("truckAssigned"), function(x){
         #print(x)
         if(x$lastDropOff==x$nextDropOff){
           #then next location is baseStation, so is nextAvailable Location  
@@ -240,9 +241,12 @@ pickupOpt = function(pickupsWin, baseStations, trucksStations, trucksInfo, dropO
     pickupTickets$mileageToPickup[i] = truckSched$pickupDist[best]
     pickupTickets$mileageToDropOff[i] = dropOffDist
     
-    #print(pickupTickets[i,])
   }
-   
+  pickupTickets[["type"]] = ifelse(pickupTickets$window==1,"scheduled", "forecast") 
+  return(list(dispatch=pickupTickets))
+}
+
+dispatchSummaries = function(dispatch){
   #calculate all assignments and estimated ETArrivals, ETDropOffs, BacktoHomeBase, totalHours, totalMileage, and other stats
   dispatch = pickupTickets %.%
     summarize(avgTimeToPickup = mean(difftime(ETAPickup,pickupdate,units = "hours")),
@@ -357,22 +361,21 @@ pickupOpt = function(pickupsWin, baseStations, trucksStations, trucksInfo, dropO
               loadsperTruck = length(truckAssigned)/length(unique(truckAssigned)),
               utilization= sum(difftime(ETADropOff,pickupdate, units="hours"))/ (as.numeric(difftime(max(ETADropOff), min(pickupdate), units="hours"))*length(unique(truckAssigned)))    
     )
-#   incProgress(.25)
-  #}) #end of with progress
-  return(list(dispatch=pickupTickets,
-              dispatchSummary=list(dispatch=dispatch,
-                                   dispatchByCompany=dispatchByCompany,
-                                   dispatchByCounty=dispatchByCounty,
-                                   dispatchByField=dispatchByField,
-                                   dispatchByTruck=dispatchByTruck,
-                                   dispatchByBaseStation=dispatchByBaseStation,
-                                   dispatchByDropOff=dispatchByDropOff)))
+
+  return(list(dispatch=dispatch,
+               dispatchByCompany=dispatchByCompany,
+               dispatchByCounty=dispatchByCounty,
+               dispatchByField=dispatchByField,
+               dispatchByTruck=dispatchByTruck,
+               dispatchByBaseStation=dispatchByBaseStation,
+               dispatchByDropOff=dispatchByDropOff))
+  
 }
 
 dispatchRoute = function(dispatch, baseStations, trucksStations, trucksInfo, dropOffs){
   ## This function takes a set of ticket dispatches and calculates the likely route for each truck and returns a DF
   
-  ddply(dispatch, .(truckAssigned), function(x){
+  plyr::ddply(dispatch, .variables = "truckAssigned", function(x){
     position = data.frame(location="baseStation", lat=baseStations$lat[trucksStations$station[ x$truckAssigned[1] ]], 
                        long=baseStations$long[trucksStations$station[ x$truckAssigned[1] ]])
     for(i in 1:nrow(x)){

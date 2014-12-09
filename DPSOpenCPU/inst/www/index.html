@@ -222,30 +222,36 @@
       <div class="row">
         <div class="col-lg-9">
           <h2>Dispatch Queue</h2>
-          <table id="dispatchQueue" class="display" cellspacing="0" width="100%">
-            <thead>
-                <tr>
-                    <th>Truck ID</th>
-                    <th>Load Name</th>
-                    <th>Requested Date</th>
-                    <th>Scheduled Date</th>
-                    <th>Age</th>
-                    <th>Type</th>
-                </tr>
-            </thead>
-            <tfoot>
-                <tr>
-                    <th>Truck ID</th>
-                    <th>Load Name</th>
-                    <th>Requested Date</th>
-                    <th>Scheduled Date</th>
-                    <th>Age</th>
-                    <th>Type</th>
-                </tr>
-            </tfoot>
-          <tbody>
-          </tbody>
-          </table>
+          <div id="waitingDispatchQueue">
+            <h3>Calculating Dispatch Queue....</h3>
+            <img src='img/waiting.gif' height="100", width="80">
+          </div>
+          <div id="dispatchQueueDiv">
+            <table id="dispatchQueue" class="display" cellspacing="0" width="100%">
+              <thead>
+                  <tr>
+                      <th>Truck ID</th>
+                      <th>Load Name</th>
+                      <th>Company Name</th>
+                      <th>Requested Date</th>
+                      <th>ETA Pickup</th>
+                      <th>Type</th>
+                  </tr>
+              </thead>
+              <tfoot>
+                  <tr>
+                      <th>Truck ID</th>
+                      <th>Load Name</th>
+                      <th>Company Name</th>
+                      <th>Requested Date</th>
+                      <th>ETA Pickup</th>
+                      <th>Type</th>
+                  </tr>
+              </tfoot>
+            <tbody>
+            </tbody>
+            </table>
+          </div>
         </div>
       </div>
   

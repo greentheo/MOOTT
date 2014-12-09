@@ -1,41 +1,64 @@
-var sessionID;
+var baseDataSessionID;
+var dispatchSessionID;
 
 $(document).ready(function() {
+    
+    
+    //hide some divs
+    $('#dispatchQueueDiv').hide();
     
     //sample the demo data and store the session for use later ... in production this is actually pulled from the user's
     //data
     var req = ocpu.call("baseData", {pickups: 100}, function(session){
     
-      sessionID = session;
+      baseDataSessionID = session;
       console.log(session);
       
       //retrieve the returned object async
       session.getObject(function(data){
-       
+          
           //fill in the tables with the demoData (or in a production setting, the modified user data...we wont need R here)
           makeTables($('#baseStationsTable tbody'), ["station", "lat", "long"], data.baseStations);
           makeTables($('#trucksStationsTable tbody'), ["truckNumber", "station"], data.trucksStations);
           makeTables($('#dropOffPointsTable tbody'), ["dropOff", "lat", "long"], data.dropOffPoints);
           makeTables($('#trucksInfoTable tbody'), ["truckNumber", "available", "avgSpeed"], data.trucksInfo);
           
-          //tableFy all of the data once it's been inserted into the tables
-          tableFy();
+          //tableFy the tables now that there's data for them.
+          tableFy($('#baseStationsTable'));
+          tableFy($('#trucksStationsTable'));
+          tableFy($('#trucksInfoTable'));
+          tableFy($('#dropOffPointsTable'));
+          
+          dispatchQueue(baseDataSessionID);
+          
+          ///do a promise fulfilled here and tablefy the data (so that you only do it once)
+          
+          
       });
       
     })
-    
-    //TODO - include the plugins from https://code.google.com/p/jquery-datatables-editable/ to make these tables editable and push the changes back to a database
-    
-    
-    //Now that the UI is loaded, do the dispatch, when it's done enable upload and modification buttons
-    
-    var req = ocpu.call('dispatch', )
-    
-    //assign functionality to each of the buttons on the UI (like upload a spreadsheet, download a spreadsheet, calculate new dispatch... etc.)
-    
+  
     
 } );
 
+//do the dispatch and fill in the table for the dispatch Queue
+dispatchQueue = function(baseDataSession){
+  
+          var req = ocpu.call('dispatchQueue', 
+                              {data: baseDataSession, windowsAhead: 12}, 
+                              function(session){
+                                  dispatchSessionID=session;
+                                  session.getObject(function(data){
+                                    console.log(data);
+                                    makeTables($('#dispatchQueue tbody'), 
+                                      ["truckAssigned","WELL_NAME", "COMPANY_NA", "pickupdate","ETAPickup","type"], 
+                                      data.dispatch);
+                                      tableFy($('#dispatchQueue'));
+                                      $('#waitingDispatchQueue').hide(800);
+                                      $('#dispatchQueueDiv').show(800);
+                                  });
+                              });         
+}
 makeTables = function(tbody, props, data){
           $.each(data, function(i, dataPoint) {
             var tr = $('<tr>');
@@ -46,14 +69,8 @@ makeTables = function(tbody, props, data){
           })
 }
 
-tableFy = function(){
+tableFy = function(table){
   //tableify the dispatch queue and all the other tables
-    $('#dispatchQueue').DataTable();
-    
-    //System Page
-    $('#baseStationsTable').DataTable();
-    $('#trucksStationsTable').DataTable();
-    $('#trucksInfoTable').DataTable();
-    $('#dropOffPointsTable').DataTable();
+    table.DataTable();
   
 }
