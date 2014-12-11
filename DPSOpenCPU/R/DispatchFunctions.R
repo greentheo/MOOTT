@@ -18,7 +18,7 @@ great_circle_distance <- function(lat1, long1, lat2, long2) {
 
 #' Dispatch a set of scheduled pickups
 #' @param data a list of various data items returned from baseData, or passed in via JSON 
-#' @return data.frame of dispatches
+#' @return list with a data.frame of dispatches
 #' @export
 dispatchQueue=function(data, pickupWindow=1,windowsAhead=1){
   
@@ -246,120 +246,125 @@ pickupOpt = function(pickupsWin, baseStations, trucksStations, trucksInfo, dropO
   return(list(dispatch=pickupTickets))
 }
 
-dispatchSummaries = function(dispatch){
+#' A function which calculates summary metrics on the dispatch queue
+#' @param dispatch a list object containing the dispatch queue
+#' @return list with several data.frames containing metric summaries
+#' @export
+dispatchSummaries = function(dispatch, baseData){
+  pickupTickets = dispatch$dispatch
   #calculate all assignments and estimated ETArrivals, ETDropOffs, BacktoHomeBase, totalHours, totalMileage, and other stats
   dispatch = pickupTickets %.%
-    summarize(avgTimeToPickup = mean(difftime(ETAPickup,pickupdate,units = "hours")),
-              avgTimeToService = mean(difftime(ETADropOff,pickupdate, units="hours")),
-              profitPerHour = mean(GrossProfit*200)/as.numeric(mean(difftime(ETADropOff,pickupdate, units="hours"))),
+    summarize(avgTimeToPickup = as.numeric(mean(difftime(ETAPickup,pickupdate,units = "hours"))),
+              avgTimeToService = as.numeric(mean(difftime(ETADropOff,pickupdate, units="hours"))),
+              profitPerHour = as.numeric(mean(GrossProfit*200)/as.numeric(mean(difftime(ETADropOff,pickupdate, units="hours")))),
               avgMilesToPickup = mean(mileageToPickup),
               avgMilesperLoad = mean(mileageToPickup+mileageToDropOff),
               profitPerMile = mean(GrossProfit*200)/mean(mileageToPickup+mileageToDropOff),
               milesPerTruck = sum(mileageToPickup+mileageToDropOff)/length(unique(truckAssigned)),
-              hoursPerTruck = sum(difftime(ETADropOff,pickupdate, units="hours"))/length(unique(truckAssigned)),
-              loadsPerTruck = length(truckAssigned)/length(unique(truckAssigned))
+              hoursPerTruck = as.numeric(sum(difftime(ETADropOff,pickupdate, units="hours"))/length(unique(truckAssigned))),
+              loadsPerTruck = as.numeric(length(truckAssigned)/length(unique(truckAssigned)))
     )
   
   dispatchByField = pickupTickets %.%
     group_by(FIELD_NAME) %.%
-    summarize(avgTimeToPickup = mean(difftime(ETAPickup,pickupdate,units = "hours")),
-              avgTimeToService = mean(difftime(ETADropOff,pickupdate, units="hours")),
-              profitPerHour = mean(GrossProfit*200)/as.numeric(mean(difftime(ETADropOff,pickupdate, units="hours"))),
+    summarize(avgTimeToPickup = as.numeric(mean(difftime(ETAPickup,pickupdate,units = "hours"))),
+              avgTimeToService = as.numeric(mean(difftime(ETADropOff,pickupdate, units="hours"))),
+              profitPerHour = as.numeric(mean(GrossProfit*200)/as.numeric(mean(difftime(ETADropOff,pickupdate, units="hours")))),
               profitPerLoad = mean(GrossProfit*200),
-              loadsPerHour = length(GrossProfit)/as.numeric(difftime(max(pickupdate), min(pickupdate), units="hours")),
+              loadsPerHour = as.numeric(length(GrossProfit)/as.numeric(difftime(max(pickupdate), min(pickupdate), units="hours"))),
               loads = length(GrossProfit),
               avgMilesToPickup = mean(mileageToPickup),
               avgMilesperLoad = mean(mileageToPickup+mileageToDropOff),
               profitPerMile = mean(GrossProfit*200)/mean(mileageToPickup+mileageToDropOff),
               milesPerTruck = sum(mileageToPickup+mileageToDropOff)/length(unique(truckAssigned)),
-              hoursPerTruck = sum(difftime(ETADropOff,pickupdate, units="hours"))/length(unique(truckAssigned)),
+              hoursPerTruck = as.numeric(sum(difftime(ETADropOff,pickupdate, units="hours"))/length(unique(truckAssigned))),
               loadsPerTruck = length(truckAssigned)/length(unique(truckAssigned))
     )
   
   dispatchByCompany = pickupTickets %.%
     group_by(COMPANY_NA) %.%
-    summarize(avgTimeToPickup = mean(difftime(ETAPickup,pickupdate,units = "hours")),
-              avgTimeToService = mean(difftime(ETADropOff,pickupdate, units="hours")),
-              profitPerHour = mean(GrossProfit*200)/as.numeric(mean(difftime(ETADropOff,pickupdate, units="hours"))),
+    summarize(avgTimeToPickup = as.numeric(mean(difftime(ETAPickup,pickupdate,units = "hours"))),
+              avgTimeToService = as.numeric(mean(difftime(ETADropOff,pickupdate, units="hours"))),
+              profitPerHour = as.numeric(mean(GrossProfit*200)/as.numeric(mean(difftime(ETADropOff,pickupdate, units="hours")))),
               profitPerLoad = mean(GrossProfit*200),
-              loadsPerHour = length(GrossProfit)/as.numeric(difftime(max(pickupdate), min(pickupdate), units="hours")),
+              loadsPerHour = as.numeric(length(GrossProfit)/as.numeric(difftime(max(pickupdate), min(pickupdate), units="hours"))),
               loads = length(GrossProfit),
               avgMilesToPickup = mean(mileageToPickup),
               avgMilesperLoad = mean(mileageToPickup+mileageToDropOff),
               profitPerMile = mean(GrossProfit*200)/mean(mileageToPickup+mileageToDropOff),
               milesPerTruck = sum(mileageToPickup+mileageToDropOff)/length(unique(truckAssigned)),
-              hoursPerTruck = sum(difftime(ETADropOff,pickupdate, units="hours"))/length(unique(truckAssigned)),
+              hoursPerTruck = as.numeric(sum(difftime(ETADropOff,pickupdate, units="hours"))/length(unique(truckAssigned))),
               loadsPerTruck = length(truckAssigned)/length(unique(truckAssigned))
     )
   
   dispatchByCounty = pickupTickets %.%
     group_by(COUNTY) %.%
-    summarize(avgTimeToPickup = mean(difftime(ETAPickup,pickupdate,units = "hours")),
-              avgTimeToService = mean(difftime(ETADropOff,pickupdate, units="hours")),
-              profitPerHour = mean(GrossProfit*200)/as.numeric(mean(difftime(ETADropOff,pickupdate, units="hours"))),
+    summarize(avgTimeToPickup = as.numeric(mean(difftime(ETAPickup,pickupdate,units = "hours"))),
+              avgTimeToService = as.numeric(mean(difftime(ETADropOff,pickupdate, units="hours"))),
+              profitPerHour = as.numeric(mean(GrossProfit*200)/as.numeric(mean(difftime(ETADropOff,pickupdate, units="hours")))),
               profitPerLoad = mean(GrossProfit*200),
-              loadsPerHour = length(GrossProfit)/as.numeric(difftime(max(pickupdate), min(pickupdate), units="hours")),
+              loadsPerHour = as.numeric(length(GrossProfit)/as.numeric(difftime(max(pickupdate), min(pickupdate), units="hours"))),
               loads = length(GrossProfit),
               avgMilesToPickup = mean(mileageToPickup),
               avgMilesperLoad = mean(mileageToPickup+mileageToDropOff),
               profitPerMile = mean(GrossProfit*200)/mean(mileageToPickup+mileageToDropOff),
               milesPerTruck = sum(mileageToPickup+mileageToDropOff)/length(unique(truckAssigned)),
-              hoursPerTruck = sum(difftime(ETADropOff,pickupdate, units="hours"))/length(unique(truckAssigned)),
+              hoursPerTruck = as.numeric(sum(difftime(ETADropOff,pickupdate, units="hours"))/length(unique(truckAssigned))),
               loadsPerTruck = length(truckAssigned)/length(unique(truckAssigned))
     )
   
   
   dispatchByTruck = pickupTickets %.%
     group_by(truckAssigned) %.%
-    summarize(avgTimeToPickup = mean(difftime(ETAPickup,pickupdate,units = "hours")),
-              avgTimeToService = mean(difftime(ETADropOff,pickupdate, units="hours")),
-              profitPerHour = mean(GrossProfit*200)/as.numeric(mean(difftime(ETADropOff,pickupdate, units="hours"))),
+    summarize(avgTimeToPickup = as.numeric(mean(difftime(ETAPickup,pickupdate,units = "hours"))),
+              avgTimeToService = as.numeric(mean(difftime(ETADropOff,pickupdate, units="hours"))),
+              profitPerHour = as.numeric(mean(GrossProfit*200)/as.numeric(mean(difftime(ETADropOff,pickupdate, units="hours")))),
               profitPerLoad = mean(GrossProfit*200),
-              loadsPerHour = length(GrossProfit)/as.numeric(difftime(max(pickupdate), min(pickupdate), units="hours")),
+              loadsPerHour = as.numeric(length(GrossProfit)/as.numeric(difftime(max(pickupdate), min(pickupdate), units="hours"))),
               loads = length(GrossProfit),
               avgMilesToPickup = mean(mileageToPickup),
               avgMilesperLoad = mean(mileageToPickup+mileageToDropOff),
               profitPerMile = mean(GrossProfit*200)/mean(mileageToPickup+mileageToDropOff),
               miles = sum(mileageToPickup+mileageToDropOff),
-              hours = sum(difftime(ETADropOff,pickupdate, units="hours")),
-              utilization= sum(difftime(ETADropOff,pickupdate, units="hours"))/  as.numeric(difftime(max(pickupTickets$pickupdate), min(pickupTickets$pickupdate), units="hours")) #sum of their useful driving hours / hours available
+              hours = as.numeric(sum(difftime(ETADropOff,pickupdate, units="hours"))),
+              utilization= as.numeric(sum(difftime(ETADropOff,pickupdate, units="hours"))/  as.numeric(difftime(max(pickupTickets$pickupdate), min(pickupTickets$pickupdate), units="hours"))) #sum of their useful driving hours / hours available
     )
   
-  pickupTicketsStations = merge(pickupTickets, trucksStations, by.x="truckAssigned", by.y="truckNumber")
+  pickupTicketsStations = merge(pickupTickets, baseData$trucksStations, by.x="truckAssigned", by.y="truckNumber")
   dispatchByBaseStation = pickupTicketsStations %.%
     group_by(station) %.%
-    summarize(avgTimeToPickup = mean(difftime(ETAPickup,pickupdate,units = "hours")),
-              avgTimeToService = mean(difftime(ETADropOff,pickupdate, units="hours")),
-              profitPerHour = mean(GrossProfit*200)/as.numeric(mean(difftime(ETADropOff,pickupdate, units="hours"))),
+    summarize(avgTimeToPickup = as.numeric(mean(difftime(ETAPickup,pickupdate,units = "hours"))),
+              avgTimeToService = as.numeric(mean(difftime(ETADropOff,pickupdate, units="hours"))),
+              profitPerHour = as.numeric(mean(GrossProfit*200)/as.numeric(mean(difftime(ETADropOff,pickupdate, units="hours")))),
               profitPerLoad = mean(GrossProfit*200),
-              loadsPerHour = length(GrossProfit)/as.numeric(difftime(max(pickupdate), min(pickupdate), units="hours")),
+              loadsPerHour = as.numeric(length(GrossProfit)/as.numeric(difftime(max(pickupdate), min(pickupdate), units="hours"))),
               loads = length(GrossProfit),
               avgMilesToPickup = mean(mileageToPickup),
               avgMilesperLoad = mean(mileageToPickup+mileageToDropOff),
               profitPerMile = mean(GrossProfit*200)/mean(mileageToPickup+mileageToDropOff),
               miles = sum(mileageToPickup+mileageToDropOff),
-              hours = sum(difftime(ETADropOff,pickupdate, units="hours")),
+              hours = as.numeric(sum(difftime(ETADropOff,pickupdate, units="hours"))),
               milesperTruck = sum(mileageToPickup+mileageToDropOff)/length(unique(truckAssigned)),
-              hoursperTruck = sum(difftime(ETADropOff,pickupdate, units="hours"))/length(unique(truckAssigned)),
+              hoursperTruck = as.numeric(sum(difftime(ETADropOff,pickupdate, units="hours"))/length(unique(truckAssigned))),
               loadsperTruck = length(truckAssigned)/length(unique(truckAssigned)),
-              utilization= sum(difftime(ETADropOff,pickupdate, units="hours"))/ (as.numeric(difftime(max(ETADropOff), min(pickupdate), units="hours"))*length(unique(truckAssigned)))    
+              utilization= as.numeric(sum(difftime(ETADropOff,pickupdate, units="hours"))/ (as.numeric(difftime(max(ETADropOff), min(pickupdate), units="hours"))*length(unique(truckAssigned))))    
     )
   
   dispatchByDropOff = pickupTickets %.%
     group_by(assignedDropOff) %.%
-    summarize(avgTimeToPickup = mean(difftime(ETAPickup,pickupdate,units = "hours")),
-              avgTimeToService = mean(difftime(ETADropOff,pickupdate, units="hours")),
-              profitPerHour = mean(GrossProfit*200)/as.numeric(mean(difftime(ETADropOff,pickupdate, units="hours"))),
+    summarize(avgTimeToPickup = as.numeric(mean(difftime(ETAPickup,pickupdate,units = "hours"))),
+              avgTimeToService = as.numeric(mean(difftime(ETADropOff,pickupdate, units="hours"))),
+              profitPerHour = as.numeric(mean(GrossProfit*200)/as.numeric(mean(difftime(ETADropOff,pickupdate, units="hours")))),
               profitPerLoad = mean(GrossProfit*200),
-              loadsPerHour = length(GrossProfit)/as.numeric(difftime(max(pickupdate), min(pickupdate), units="hours")),
+              loadsPerHour = as.numeric(length(GrossProfit)/as.numeric(difftime(max(pickupdate), min(pickupdate), units="hours"))),
               loads = length(GrossProfit),
               avgMilesToPickup = mean(mileageToPickup),
               avgMilesperLoad = mean(mileageToPickup+mileageToDropOff),
               profitPerMile = mean(GrossProfit*200)/mean(mileageToPickup+mileageToDropOff),
               milesperTruck = sum(mileageToPickup+mileageToDropOff)/length(unique(truckAssigned)),
-              hoursperTruck = sum(difftime(ETADropOff,pickupdate, units="hours"))/length(unique(truckAssigned)),
+              hoursperTruck = as.numeric(sum(difftime(ETADropOff,pickupdate, units="hours"))/length(unique(truckAssigned))),
               loadsperTruck = length(truckAssigned)/length(unique(truckAssigned)),
-              utilization= sum(difftime(ETADropOff,pickupdate, units="hours"))/ (as.numeric(difftime(max(ETADropOff), min(pickupdate), units="hours"))*length(unique(truckAssigned)))    
+              utilization= as.numeric(sum(difftime(ETADropOff,pickupdate, units="hours"))/ (as.numeric(difftime(max(ETADropOff), min(pickupdate), units="hours"))*length(unique(truckAssigned))))    
     )
 
   return(list(dispatch=dispatch,
@@ -372,6 +377,37 @@ dispatchSummaries = function(dispatch){
   
 }
 
+#' A function which calculates summary metrics on the dispatch queue
+#' @param dispatch a list object containing the dispatch queue
+#' @return list with a handful of metric summaries
+#' @export
+dispatchBriefSummary = function(dispatchSummary, baseData){
+  
+  #for load balancing to achieve the same milesperTruck
+  stationCounts = data.frame(station=names(table(baseData$trucksStations$station)), trucks=as.numeric(table(baseData$trucksStations$station)))
+  sumByStation = merge(stationCounts, dispatchSummary$dispatchByBaseStation, by="station", all.x = T)[,c("miles", "trucks", "station", "loads")]
+  sumByStation[is.na(sumByStation)]=0
+  
+  overUnder = sumByStation %.%
+    arrange(desc(loads)) %.%
+    mutate(milestruck = (miles/trucks)*loads,
+           trucksNeeded = milestruck/sum(milestruck) *  sum(trucks),
+           trucksOverUnder = trucksNeeded-trucks
+    ) %.%
+    arrange(desc(trucksNeeded))
+  
+  
+  #show the overload alert
+  systemOverload = mean(dispatchSummary$dispatchByBaseStation$utilization)
+  
+  
+  
+  return(list(utilizationData=with(overUnder, data.frame(BaseStation=station, loads,  trucks, loadMilesPerTruck=milestruck, trucksNeeded=round(trucksNeeded), trucksOverUnder=round(trucksOverUnder))),
+              load=round(systemOverload,digits = 2),
+              efficiency=round(dispatchSummary$dispatch$avgMilesperLoad, digits = 2),
+              loadServiceTime=round(dispatchSummary$dispatch$avgTimeToService, digits=2)))
+  
+}
 dispatchRoute = function(dispatch, baseStations, trucksStations, trucksInfo, dropOffs){
   ## This function takes a set of ticket dispatches and calculates the likely route for each truck and returns a DF
   

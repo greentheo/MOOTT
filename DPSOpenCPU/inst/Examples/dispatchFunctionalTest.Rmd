@@ -26,12 +26,19 @@ demoData
 
 ```{r}
 
-dispatch = dispatchQueue(demoData,windowsAhead = 3)
+dispatch = dispatchQueue(demoData,windowsAhead = 12
+
+
 
 ### make a plot of the dispatch locations
 
 
+
 ### summary tables
+dispatchSummary = dispatchSummaries(dispatch = dispatch, baseData = demoData)
+
+### summary metrics
+dispatchMetrics = dispatchBriefSummary(dispatchSummary = dispatchSummary, baseData = demoData)
 
 
 ```
