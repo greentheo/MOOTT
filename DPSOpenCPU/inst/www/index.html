@@ -31,10 +31,17 @@
     <!-- DataTables -->
     <script src="http://cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js"></script>
     <link rel="stylesheet" href="http://cdn.datatables.net/1.10.4/css/jquery.dataTables.css">
-    
+    <script src="js/jquery.jeditable.js" type="text/javascript"></script>
+    <script src="js/jquery-ui.min.js" type="text/javascript"></script>
+    <script src="js/jquery.validate.min.js" type="text/javascript"></script>
+    <script src="js/jquery.DataTables.editable.js" type="text/javascript"></script>
+
     <!--backbone-->
     <script src="js/underscore-min.js"></script>
     <script src="js/backbone-min.js"></script>
+    
+    
+    
     
      <!--main JS functionality -->
     <script src="js/main.js"></script>
@@ -222,11 +229,11 @@
       <div class="row">
         <div class="col-lg-9">
           <h2>Dispatch Queue</h2>
-          <div id="waitingDispatchQueue">
+          <div id="waitingDispatchQueue" class="waitingDispatch">
             <h3>Calculating Dispatch Queue....</h3>
             <img src='img/waiting.gif' height="100", width="80">
           </div>
-          <div id="dispatchQueueDiv">
+          <div id="dispatchQueueDiv" class="dataDiv">
             <table id="dispatchQueue" class="display" cellspacing="0" width="100%">
               <thead>
                   <tr>
@@ -251,7 +258,8 @@
             <tbody>
             </tbody>
             </table>
-          </div>
+            <a href="#" class="export" dataTableID="dispatchQueue">Export Dispatch Queue to Excel</a>
+          </div>    
         </div>
       </div> <!-- Dispatch Queue-->
   
@@ -269,34 +277,40 @@
           </div><!-- /.row -->
   
           <div class="row">
-            <div class="col-lg-12">
+            <div class="col-lg-9">
               <h2>Over/Under Load <small>by Station, with trucks needed or overstaffed.</small></h2>
-          
-              <table id="overUnderLoadTable" class="display" cellspacing="0" width="100%">
-                <thead>
-                <tr>
-                    <th>Station</th>
-                    <th>Loads</th>
-                    <th>Trucks</th>
-                    <th>Load-Miles per Truck</th>
-                    <th>Total Trucks Needed</th>
-                    <th>Addtnl Trucks Needed</th>
-                </tr>
-            </thead>
-                <tfoot>
-                <tr>
-                    <th>Station</th>
-                    <th>Loads</th>
-                    <th>Trucks</th>
-                    <th>Load-Miles per Truck</th>
-                    <th>Total Trucks Needed</th>
-                    <th>Addtnl Trucks Needed</th>
-                </tr>
-            </tfoot>
-                <tbody>
-            </tbody>
-              </table>
-  	        </div>	
+              <div id="waitingResourceAllocation" class="waitingDispatch">
+                <h3>Calculating OverUnderLoad and Analysis....</h3>
+                <img src='img/waiting.gif' height="100", width="80">
+              </div>
+              <div id="resourceAllocationDiv" class="dataDiv">
+                <table id="overUnderLoadTable" class="display" cellspacing="0" width="100%">
+                  <thead>
+                  <tr>
+                      <th>Station</th>
+                      <th>Loads</th>
+                      <th>Trucks</th>
+                      <th>Load-Miles per Truck</th>
+                      <th>Total Trucks Needed</th>
+                      <th>Addtnl Trucks Needed</th>
+                  </tr>
+              </thead>
+                  <tfoot>
+                  <tr>
+                      <th>Station</th>
+                      <th>Loads</th>
+                      <th>Trucks</th>
+                      <th>Load-Miles per Truck</th>
+                      <th>Total Trucks Needed</th>
+                      <th>Addtnl Trucks Needed</th>
+                  </tr>
+              </tfoot>
+                  <tbody>
+              </tbody>
+                </table>
+                <a href="#" class="export" dataTableID="overUnderLoadTable">Export Over/Under Load Table to Excel</a>
+  	        </div><!--resourceAllocationDiv-->
+            </div><!--column-->
           </div><!-- row -->
          
   
@@ -311,7 +325,8 @@
               </ol>
               
             </div>
-          </div><!-- /.row -->
+          </div><!-- /.row --> <!--brief analysis-->
+          
           <div class="row">
             <div class="col-lg-3">
               <div class="panel panel-success">
@@ -398,9 +413,16 @@
           </div><!-- /.row Brief Dispatch Metrics -->
           
           <div class="row">
-            <div class="col-lg-6">
-              <h2>SystemWide <small>Scheduling Summary</small></h2>
+          <h2>SystemWide <small>Scheduling Summary</small></h2>
+              <div id="waitingReports" class="waitingDispatch">
+                <h3>Calculating System Analysis....</h3>
+                <img src='img/waiting.gif' height="100", width="80">
+              </div>
+          </div><!--row-->
           
+          <div id="reportsDiv" class="dataDiv">
+          <div class="row">
+            <div class="col-lg-9">  
               <table id="dispatchSummaryTable" class="display" cellspacing="0" width="100%">
                 <thead>
                 <tr>
@@ -423,11 +445,12 @@
                 <tbody>
             </tbody>
               </table>
-            </div>
+              <a href="#" class="export" dataTableID="dispatchSummaryTable">Export Dispatch Summary to Excel</a>
+              </div>
           </div>
          
          <div class="row">
-            <div class="col-lg-6">
+            <div class="col-lg-9">
               <h2>Analysis By Customer <small>Scheduling Summary</small></h2>
           
               <table id="dispatchByCompanyTable" class="display" cellspacing="0" width="100%">
@@ -455,9 +478,43 @@
                 <tbody>
             </tbody>
               </table>
+              <a href="#" class="export" dataTableID="dispatchByCompanyTable">Export Analysis By Company to Excel</a>
             </div>
-          </div>
+          </div> <!-- analysis by cutomer-->
           
+          <div class="row">
+            <div class="col-lg-9">
+              <h2>Analysis By County <small>Scheduling Summary</small></h2>
+          
+              <table id="dispatchByCountyTable" class="display" cellspacing="0" width="100%">
+                <thead>
+                <tr>
+                    <th>County</th>
+                    <th>Time to Service</th>
+                    <th>Profit per Hour</th>
+                    <th>Profit per Load</th>
+                    <th>Loads</th>
+                    <th>Miles Per Load</th>
+                    
+                </tr>
+            </thead>
+                <tfoot>
+                <tr>
+                    <th>County</th>
+                    <th>Time to Service</th>
+                    <th>Profit per Hour</th>
+                    <th>Profit per Load</th>
+                    <th>Loads</th>
+                    <th>Miles Per Load</th>
+                </tr>
+            </tfoot>
+                <tbody>
+            </tbody>
+              </table>
+              <a href="#" class="export" dataTableID="dispatchQueue">Export Analysis By County to Excel</a>
+            </div><!-- analysis by county -->
+          </div> <!--row-->
+          </div><!-- reportsDiv-->
          </div><!--tab content Reports-->
         <div role='tabpanel' class="tab-pane" id="System">
           <div class="row">
@@ -469,99 +526,123 @@
               
             </div>
           </div><!-- /.row -->
-          <div class="row">
-          <div class="col-lg-6">
-          <h2>Trucks - Stations Assignments <small>(Click to Edit)</small></h2>
-          
-              <table id="trucksStationsTable" class="display" cellspacing="0" width="100%">
-                <thead>
-                <tr>
-                    <th>Truck</th>
-                    <th>Station</th>
-                </tr>
-            </thead>
-                <tfoot>
-                <tr>
-                    <th>Truck</th>
-                    <th>Station</th>
-                </tr>
-            </tfoot>
-                <tbody>
-            </tbody>
-              </table>
-            </div><!--col-->
+          <div id="waitingSysInfo">
+            <h3>Loading System Information....</h3>
+            <img src='img/waiting.gif' height="100", width="80">
+          </div>
+          <div id="sysInfoDiv" class="infoDiv">
+            <div class="row">
             <div class="col-lg-6">
-          <h2>Base Stations <small>(Click to Edit)</small></h2>
-          
-              <table id="baseStationsTable" class="display" cellspacing="0" width="100%">
-                <thead>
-                <tr>
-                    <th>Station</th>
-                    <th>Lat</th>
-                    <th>Long</th>
-                </tr>
-            </thead>
-                <tfoot>
-                <tr>
-                    <th>Station</th>
-                    <th>Lat</th>
-                    <th>Long</th>
-                </tr>
-              </tfoot>
-                <tbody>
-            </tbody>
-              </table>
-            </div><!--col-->
+            <h2>Trucks - Stations Assignments <small>(Click to Edit)</small></h2>
             
-          </div><!-- /.row -->
-          <div class="row">
-          <div class="col-lg-6">
-          <h2>Truck Information <small>(Click to Edit)</small></h2>
-          
-              <table id="trucksInfoTable" class="display" cellspacing="0" width="100%">
-                <thead>
-                <tr>
-                    <th>Truck</th>
-                    <th>Available</th>
-                    <th>AvgSpeed</th>
-                </tr>
-            </thead>
-                <tfoot>
-                <tr>
-                    <th>Truck</th>
-                    <th>Available</th>
-                    <th>AvgSpeed</th>
-                </tr>
-            </tfoot>
-                <tbody>
-            </tbody>
-              </table>
-            </div><!--col-->
+                <table id="trucksStationsTable" class="display" cellspacing="0" width="100%">
+                  <thead>
+                  <tr>
+                      <th>Truck</th>
+                      <th>Station</th>
+                  </tr>
+              </thead>
+                  <tfoot>
+                  <tr>
+                      <th>Truck</th>
+                      <th>Station</th>
+                  </tr>
+              </tfoot>
+                  <tbody>
+              </tbody>
+                </table>
+                <!--<form id="formAddNewRow" class="form-inline" action="#" title="Add Truck-Station Pair">
+                  <label for="name">Truck Number</label><input type="text" name="truck" id="truck" class="required" rel="0" />
+                  <br />
+                  <label for="name">Station</label><input type="text" name="station" id="station" rel="1" />
+                  <br />       
+              </form>
+                <div class="add_delete_toolbar" />-->
+              </div><!--col-->
+              <div class="col-lg-6">
+                <h2>Base Stations <small>(Click to Edit)</small></h2>
+            
+                <table id="baseStationsTable" class="display" cellspacing="0" width="100%">
+                  <thead>
+                  <tr>
+                      <th>Station</th>
+                      <th>Lat</th>
+                      <th>Long</th>
+                  </tr>
+              </thead>
+                  <tfoot>
+                  <tr>
+                      <th>Station</th>
+                      <th>Lat</th>
+                      <th>Long</th>
+                  </tr>
+                </tfoot>
+                  <tbody>
+              </tbody>
+                </table>
+                <!--<form id="formAddNewRow" class="form-inline" action="#" title="Add Truck-Station Pair">
+                  <label for="name">Station</label><input type="text" name="station" id="station" class="required" rel="0" />
+                  <br />
+                  <label for="name">Lat</label><input type="text" name="long" id="lat" rel="1" />
+                  <br />
+                  <label for="name">Long</label><input type="text" name="long" id="long" rel="1" />
+                  <br />  
+              </form>
+                <div class="add_delete_toolbar" />-->
+              </div><!--col-->
+              
+            </div><!-- /.row -->
+            <hr>
+            <div class="row">
             <div class="col-lg-6">
-          <h2>DropOff Points <small>(Click to Edit)</small></h2>
-          
-              <table id="dropOffPointsTable" class="display" cellspacing="0" width="100%">
-                <thead>
-                <tr>
-                    <th>DropOff</th>
-                    <th>Lat</th>
-                    <th>Long</th>
-                </tr>
-            </thead>
-                <tfoot>
-                <tr>
-                    <th>DropOff</th>
-                    <th>Lat</th>
-                    <th>Long</th>
-                </tr>
-              </tfoot>
-                <tbody>
-            </tbody>
-              </table>
-            </div><!--col-->
+            <h2>Truck Information <small>(Click to Edit)</small></h2>
             
-          </div><!-- /.row -->
-  
+                <table id="trucksInfoTable" class="display" cellspacing="0" width="100%">
+                  <thead>
+                  <tr>
+                      <th>Truck</th>
+                      <th>Available</th>
+                      <th>AvgSpeed</th>
+                  </tr>
+              </thead>
+                  <tfoot>
+                  <tr>
+                      <th>Truck</th>
+                      <th>Available</th>
+                      <th>AvgSpeed</th>
+                  </tr>
+              </tfoot>
+                  <tbody>
+              </tbody>
+                </table>
+                <!--<div class="add_delete_toolbar" />-->
+              </div><!--col-->
+              <div class="col-lg-6">
+                <h2>DropOff Points <small>(Click to Edit)</small></h2>
+            
+                <table id="dropOffPointsTable" class="display" cellspacing="0" width="100%">
+                  <thead>
+                  <tr>
+                      <th>DropOff</th>
+                      <th>Lat</th>
+                      <th>Long</th>
+                  </tr>
+              </thead>
+                  <tfoot>
+                  <tr>
+                      <th>DropOff</th>
+                      <th>Lat</th>
+                      <th>Long</th>
+                  </tr>
+                </tfoot>
+                  <tbody>
+              </tbody>
+                </table>
+                <!--<div class="add_delete_toolbar" />-->
+              </div><!--col-->
+              
+            </div><!-- /.row -->
+          </div><!-- sysInfo-->
          </div><!--tab content System Config-->
          
       </div><!-- /#page-wrapper tab content-->

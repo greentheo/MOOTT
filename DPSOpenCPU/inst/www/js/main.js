@@ -68,11 +68,25 @@ $(document).ready(function() {
     User = new UserModel();  // when there's an actual user, we'll pull their details out of the node.js server
     RDatas = new RDataModel({userModel: User}); //when there's an actual user, we'll pass the user into the RDatas model and instead of pseudo data we'll get real dispatch data back.
     
-    $('#dispatchQueueDiv').hide();
+    $('.dataDiv').hide();
+    $('#sysInfoDiv').hide();
+    
+    
+    // This must be a hyperlink
+    $(".export").on('click', function (event) {
+        // CSV
+        console.log(this);
+        exportTableToCSV.apply(this, [$('#'+this.getAttribute('datatableid')), this.getAttribute('datatableid')+'_export.csv']);
+        
+        // IF CSV, don't do event.preventDefault() or return false
+        // We actually need this to be a typical hyperlink
+    });
     
 } );
 getDemoData = function(RDatasModel){
-  var req = ocpu.call("baseData", {pickups: 100}, function(session){
+  var req = ocpu.call("baseData", {pickups: 300}, function(session){
+            $('#waitingSysInfo').show(800);
+            $('#sysInfoDiv').hide(800);
             console.log('getting demo Data');
             RDatasModel.setBaseDataSessionID(session);
             console.log(session);
@@ -87,11 +101,13 @@ getDemoData = function(RDatasModel){
                 makeTables($('#trucksInfoTable tbody'), ["truckNumber", "available", "avgSpeed"], data.trucksInfo);
                 
                 //tableFy the tables now that there's data for them.
-                tableFy($('#baseStationsTable'));
-                tableFy($('#trucksStationsTable'));
-                tableFy($('#trucksInfoTable'));
-                tableFy($('#dropOffPointsTable'));
+                tableFyEditable($('#baseStationsTable'));
+                tableFyEditable($('#trucksStationsTable'));
+                tableFyEditable($('#trucksInfoTable'));
+                tableFyEditable($('#dropOffPointsTable'));
               
+                $('#waitingSysInfo').hide(800);
+                $('#sysInfoDiv').show(800);
             });
             
           });
@@ -100,8 +116,9 @@ getDemoData = function(RDatasModel){
 //do the dispatch and fill in the table for the dispatch Queue
 dispatchQueue = function(baseDataSession, RDatasModel){
   console.log('dispatching queue...')
-          $('#dispatchQueueDiv').hide(800);
-          $('#waitingDispatchQueue').show(800);
+          $('.dataDiv').hide(800);
+          $('.waitingDispatch').show(800);
+          
           var req = ocpu.call('dispatchQueue', 
                               {data: baseDataSession, windowsAhead: 12}, 
                               function(session){
@@ -129,6 +146,23 @@ dispatchQueue = function(baseDataSession, RDatasModel){
                                               ["profitPerHour", "profitPerMile", "milesPerTruck", "hoursPerTruck", "loadsPerTruck"],
                                               data.dispatch);
                                             tableFy($('#dispatchSummaryTable'));
+                                            
+                                            //dispatchByCustomer
+                                            makeTables($('#dispatchByCompanyTable tbody'),
+                                              ["COMPANY_NA","avgTimeToService", "profitPerHour", "profitPerLoad", "loads", "avgMilesPerLoad"],
+                                              data.dispatchByCompany);
+                                            tableFy($('#dispatchByCompanyTable'));
+                                            
+                                            
+                                            //dispatchByCounty
+                                            makeTables($('#dispatchByCountyTable tbody'),
+                                              ["COUNTY","avgTimeToService", "profitPerHour", "profitPerLoad", "loads", "avgMilesPerLoad"],
+                                              data.dispatchByCounty);
+                                            tableFy($('#dispatchByCountyTable'));
+                                            
+                                            $('#waitingReports').hide(800);
+                                            $('#reportsDiv').show(800);
+                                            
                                           });
                                         
                                         //get the summary metrics for just the top of the page
@@ -147,6 +181,9 @@ dispatchQueue = function(baseDataSession, RDatasModel){
                                               ["BaseStation", "loads", "trucks", "loadMilesPerTruck", "trucksNeeded", "trucksOverUnder"],
                                               data.utilizationData);
                                             tableFy($('#overUnderLoadTable'));
+                                            
+                                            $('#waitingResourceAllocation').hide(800);
+                                            $('#resourceAllocationDiv').show(800);
                                           });
                                           
                                          
@@ -175,3 +212,49 @@ tableFy = function(table){
     table.DataTable();
   
 }
+tableFyEditable = function(table){
+  table.dataTable().makeEditable();
+}
+
+exportTableToCSV = function(table, filename) {
+        
+        var $rows = table.find('tr:has(td)'),
+
+            // Temporary delimiter characters unlikely to be typed by keyboard
+            // This is to avoid accidentally splitting the actual contents
+            tmpColDelim = String.fromCharCode(11), // vertical tab character
+            tmpRowDelim = String.fromCharCode(0), // null character
+
+            // actual delimiter characters for CSV format
+            colDelim = '","',
+            rowDelim = '"\r\n"',
+
+            // Grab text from table into CSV formatted string
+            csv = '"' + $rows.map(function (i, row) {
+                var $row = $(row),
+                    $cols = $row.find('td');
+
+                return $cols.map(function (j, col) {
+                    var $col = $(col),
+                        text = $col.text();
+
+                    return text.replace('"', '""'); // escape double quotes
+
+                }).get().join(tmpColDelim);
+
+            }).get().join(tmpRowDelim)
+                .split(tmpRowDelim).join(rowDelim)
+                .split(tmpColDelim).join(colDelim) + '"',
+
+            // Data URI
+            csvData = 'data:application/csv;charset=utf-8,' + encodeURIComponent(csv);
+
+        $(this)
+            .attr({
+            'download': filename,
+                'href': csvData,
+                'target': '_blank'
+        });
+    }
+
+    
