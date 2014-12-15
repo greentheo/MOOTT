@@ -197,7 +197,7 @@ dispatchQueue = function(baseDataSession, RDatasModel){
 
 
 
-makeTables = function(tbody, props, data){
+makeTables = function(tbody, props, data,){
           $.each(data, function(i, dataPoint) {
             var tr = $('<tr>');
             $.each(props, function(i, prop) {
@@ -213,7 +213,12 @@ tableFy = function(table){
   
 }
 tableFyEditable = function(table){
-  table.dataTable().makeEditable();
+  table.dataTable().makeEditable({
+                    sUpdateURL: function(value, settings)
+                                {
+                                        return(value);
+                                }
+                });
 }
 
 exportTableToCSV = function(table, filename) {
