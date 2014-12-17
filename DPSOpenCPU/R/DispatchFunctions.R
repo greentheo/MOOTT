@@ -243,7 +243,8 @@ pickupOpt = function(pickupsWin, baseStations, trucksStations, trucksInfo, dropO
     
   }
   pickupTickets[["type"]] = ifelse(pickupTickets$window==1,"scheduled", "forecast") 
-  return(list(dispatch=pickupTickets))
+  return(list(dispatch=pickupTickets,
+              pickupDropOffPairs=pickupDropoffPairs))
 }
 
 #' A function which calculates summary metrics on the dispatch queue

@@ -128,7 +128,7 @@
                     </div>
                   </div>
                 </div>
-                <a href="#">
+                <a href="#Reports">
                   <div class="panel-footer announcement-bottom">
                     <div class="row">
                       <div class="col-xs-6">
@@ -155,7 +155,7 @@
                     </div>
                   </div>
                 </div>
-                <a href="#">
+                <a href="#Reports">
                   <div class="panel-footer announcement-bottom">
                     <div class="row">
                       <div class="col-xs-6">
@@ -182,7 +182,7 @@
                     </div>
                   </div>
                 </div>
-                <a href="#">
+                <a href="#Reports">
                   <div class="panel-footer announcement-bottom">
                     <div class="row">
                       <div class="col-xs-6">
@@ -242,6 +242,7 @@
                       <th>Company Name</th>
                       <th>Requested Date</th>
                       <th>ETA Pickup</th>
+                      <th>Assgnd DropOff</th>
                       <th>Type</th>
                   </tr>
               </thead>
@@ -252,6 +253,7 @@
                       <th>Company Name</th>
                       <th>Requested Date</th>
                       <th>ETA Pickup</th>
+                      <th>Assgnd DropOff</th>
                       <th>Type</th>
                   </tr>
               </tfoot>
@@ -259,10 +261,76 @@
             </tbody>
             </table>
             <a href="#" class="export" dataTableID="dispatchQueue">Export Dispatch Queue to Excel</a>
-          </div>    
-        </div>
-      </div> <!-- Dispatch Queue-->
-  
+          </div>  <!--dispatchque div close>-->  
+        </div><!-- column -->
+        </div><!--row main dispatch queue-->
+        
+        <hr>
+        
+         <div id="dispatchQueueSubDiv">
+         <a name="dispatchQueueSubDiv"></a>
+         <div class="row" > <!-- extended info for truck, company or dropoff that's clicked on-->
+          <div class="col-lg-6">
+          <h2>Truck Loads Scheduled <small>(Click a load to see Alternative Options)</small></h2>
+            <table id="truckLoadTable" class="display" cellspacing="0" width="100%">
+              <thead>
+                  <tr>
+                      <th>Truck ID</th>
+                      <th>Load Name</th>
+                      <th>Company Name</th>
+                      <th>Requested Date</th>
+                      <th>ETA Pickup</th>
+                      <th>Assgnd DropOff</th>
+                      <th>Type</th>
+                  </tr>
+              </thead>
+              <tfoot>
+                  <tr>
+                      <th>Truck ID</th>
+                      <th>Load Name</th>
+                      <th>Company Name</th>
+                      <th>Requested Date</th>
+                      <th>ETA Pickup</th>
+                      <th>Assgnd DropOff</th>
+                      <th>Type</th>
+                  </tr>
+              </tfoot>
+            <tbody>
+            </tbody>
+            </table>
+          </div><!--column-->    
+          
+          <div class="col-lg-6">
+          <h2>Viable Alternatives <small>(Click + button to see a subqueue for a truck)</small></h2>
+            <table id="viableAlternativeTable" class="display" cellspacing="0" width="100%">
+              <thead>
+                  <tr>
+                      <th>Truck ID</th>
+                      <th>Load Name</th>
+                      <th>Company Name</th>
+                      <th>Requested Date</th>
+                      <th>ETA Pickup</th>
+                      <th>Assgnd DropOff</th>
+                      <th>Type</th>
+                  </tr>
+              </thead>
+              <tfoot>
+                  <tr>
+                      <th>Truck ID</th>
+                      <th>Load Name</th>
+                      <th>Company Name</th>
+                      <th>Requested Date</th>
+                      <th>ETA Pickup</th>
+                      <th>Assgnd DropOff</th>
+                      <th>Type</th>
+                  </tr>
+              </tfoot>
+            <tbody>
+            </tbody>
+            </table>
+          </div> <!--column-->   
+        </div> <!-- row -->
+        </div> <!-- dispatchQueue SubDiV-->
          
          </div><!-- tab content Dispatch Queue-->
         <div class="tab-pane" id="ResourceAllocation">
@@ -341,7 +409,7 @@
                     </div>
                   </div>
                 </div>
-                <a href="#">
+                <a href="#Reports">
                   <div class="panel-footer announcement-bottom">
                     <div class="row">
                       <div class="col-xs-6">
@@ -368,7 +436,7 @@
                     </div>
                   </div>
                 </div>
-                <a href="#">
+                <a href="#Reports">
                   <div class="panel-footer announcement-bottom">
                     <div class="row">
                       <div class="col-xs-6">
@@ -395,7 +463,7 @@
                     </div>
                   </div>
                 </div>
-                <a href="#">
+                <a href="#Reports">
                   <div class="panel-footer announcement-bottom">
                     <div class="row">
                       <div class="col-xs-6">
@@ -591,7 +659,7 @@
                 <div class="add_delete_toolbar" />-->
               </div><!--col-->
               
-            </div><!-- /.row -->
+            </div><!-- /.row trucksStations and BaseStations-->
             <hr>
             <div class="row">
             <div class="col-lg-6">
@@ -641,7 +709,109 @@
                 <!--<div class="add_delete_toolbar" />-->
               </div><!--col-->
               
-            </div><!-- /.row -->
+            </div><!-- /.row  trucksINfo and DropOff points-->
+            <hr>
+            <div class="row">
+            <div class="col-lg-6">
+            <h2>Pickup - DropOff Pairs<small>(Click to Edit)</small></h2>
+            
+                <table id="pickupDropOffsTable" class="display" cellspacing="0" width="100%">
+                  <thead>
+                  <tr>
+                      <th>Pickup Name</th>
+                      <th>DropOff</th>
+                      <th>distance</th>
+                  </tr>
+              </thead>
+                  <tfoot>
+                  <tr>
+                     <th>Pickup Name</th>
+                      <th>DropOff</th>
+                      <th>distance</th>
+                  </tr>
+              </tfoot>
+                  <tbody>
+              </tbody>
+                </table>
+                <!--<div class="add_delete_toolbar" />-->
+              </div><!--col-->
+              <div class="col-lg-6">
+                <h2>Pickup - Base Station Pairs <small>(Click to Edit)</small></h2>
+            
+                <table id="pickupBaseStationsTable" class="display" cellspacing="0" width="100%">
+                  <thead>
+                  <tr>
+                      <th>Pickup Name</th>
+                      <th>Base Station</th>
+                      <th>distance</th>
+                  </tr>
+              </thead>
+                  <tfoot>
+                  <tr>
+                      <th>Pickup Name</th>
+                      <th>Base Station</th>
+                      <th>distance</th>
+                  </tr>
+                </tfoot>
+                  <tbody>
+              </tbody>
+                </table>
+                <!--<div class="add_delete_toolbar" />-->
+              </div><!--col-->
+              
+            </div><!-- /.row  Pickup DropOff Pairs and Pickup-BaseStation Pairs-->
+            
+            <div class="row">
+            <div class="col-lg-6">
+            <h2>Pickup Points <small>(Click to Edit)</small></h2>
+            
+                <table id="pickupPointsTable" class="display" cellspacing="0" width="100%">
+                  <thead>
+                  <tr>
+                      <th>Pickup Name</th>
+                      <th>Customer Name</th>
+                      <th>Lat</th>
+                      <th>Long</th>
+                  </tr>
+              </thead>
+                  <tfoot>
+                  <tr>
+                      <th>Pickup Name</th>
+                      <th>Customer Name</th>
+                      <th>Lat</th>
+                      <th>Long</th>
+                  </tr>
+              </tfoot>
+                  <tbody>
+              </tbody>
+                </table>
+                <!--<div class="add_delete_toolbar" />-->
+              </div><!--col-->
+              <!--<div class="col-lg-6">
+                <h2>DropOff Points <small>(Click to Edit)</small></h2>
+            
+                <table id="dropOffPointsTable" class="display" cellspacing="0" width="100%">
+                  <thead>
+                  <tr>
+                      <th>DropOff</th>
+                      <th>Lat</th>
+                      <th>Long</th>
+                  </tr>
+              </thead>
+                  <tfoot>
+                  <tr>
+                      <th>DropOff</th>
+                      <th>Lat</th>
+                      <th>Long</th>
+                  </tr>
+                </tfoot>
+                  <tbody>
+              </tbody>
+                </table>
+                <!--<div class="add_delete_toolbar" />-->
+              <!--</div> <!--col-->
+              
+            </div><!-- /.row  all pickup points-->
           </div><!-- sysInfo-->
          </div><!--tab content System Config-->
          

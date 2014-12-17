@@ -38,6 +38,8 @@ baseData = function(pickups=1000, numTrucks=100, numStations=10, numDropOffs=30)
   values[["trucksStations"]] = data.frame(truckNumber=1:numTrucks, station=sample(1:numStations, numTrucks, replace = T))  
   values[["trucksInfo"]] = data.frame(truckNumber=1:numTrucks, hoursAvail=12, avgSpeed=30, available=T)
   
+  values[["pickups"]] = pickups = OG[OGSample, ]
+  
   return(values)
 }
 

@@ -16,7 +16,7 @@ library(DPSOpenCPU)
 library(knitr)
 
 
-demoData = baseData()
+demoData = baseData(pickups = 1000, numTrucks = 10, numStations = 3, numDropOffs = 10)
 
 demoData
 

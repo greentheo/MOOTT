@@ -69,6 +69,7 @@ $(document).ready(function() {
     RDatas = new RDataModel({userModel: User}); //when there's an actual user, we'll pass the user into the RDatas model and instead of pseudo data we'll get real dispatch data back.
     
     $('.dataDiv').hide();
+    $('#dispatchQueueSubDiv').hide();
     $('#sysInfoDiv').hide();
     
     
@@ -82,9 +83,11 @@ $(document).ready(function() {
         // We actually need this to be a typical hyperlink
     });
     
+    
+    
 } );
 getDemoData = function(RDatasModel){
-  var req = ocpu.call("baseData", {pickups: 300}, function(session){
+  var req = ocpu.call("baseData", {pickups:1000, numTrucks:10, numStations:3, numDropOffs:10}, function(session){
             $('#waitingSysInfo').show(800);
             $('#sysInfoDiv').hide(800);
             console.log('getting demo Data');
@@ -99,13 +102,16 @@ getDemoData = function(RDatasModel){
                 makeTables($('#trucksStationsTable tbody'), ["truckNumber", "station"], data.trucksStations);
                 makeTables($('#dropOffPointsTable tbody'), ["dropOff", "lat", "long"], data.dropOffPoints);
                 makeTables($('#trucksInfoTable tbody'), ["truckNumber", "available", "avgSpeed"], data.trucksInfo);
+                makeTables($('#pickupPointsTable tbody'), ["WELL_NAME", "COMPANY_NA", "SURF_LAT", "SURF_LONG"], data.pickups);
+                
                 
                 //tableFy the tables now that there's data for them.
                 tableFyEditable($('#baseStationsTable'));
                 tableFyEditable($('#trucksStationsTable'));
                 tableFyEditable($('#trucksInfoTable'));
                 tableFyEditable($('#dropOffPointsTable'));
-              
+                tableFyEditable($('#pickupPointsTable'));
+                
                 $('#waitingSysInfo').hide(800);
                 $('#sysInfoDiv').show(800);
             });
@@ -127,10 +133,22 @@ dispatchQueue = function(baseDataSession, RDatasModel){
                                   
                                   session.getObject(function(data){
                                     console.log(data);
-                                    makeTables($('#dispatchQueue tbody'), 
-                                      ["truckAssigned","WELL_NAME", "COMPANY_NA", "pickupdate","ETAPickup","type"], 
+                                    makeTablesWLinks($('#dispatchQueue tbody'), 
+                                      "dispatchQueueSubDiv",
+                                      ["truckAssigned","WELL_NAME", "COMPANY_NA", "pickupdate","ETAPickup","assignedDropOff","type"],
+                                      ["truck","pickup", "company", null, null, "dropOff",null],
                                       data.dispatch);
-                                      tableFy($('#dispatchQueue'));
+                                    makeTables($('#pickupDropOffsTable tbody'), 
+                                      ["WELL_NAME","dropOff", "dropOffDist"], 
+                                      data.pickupDropOffPairs); 
+                                    makeTables($('#pickupBaseStationsTable tbody'), 
+                                      ["WELL_NAME","station", "stationDist"], 
+                                      data.pickupDropOffPairs);
+                                    
+                                    tableFy($('#dispatchQueue'));
+                                    tableFy($('#pickupDropOffsTable'));
+                                    tableFy($('#pickupBaseStationsTable'));
+                                      
                                       $('#waitingDispatchQueue').hide(800);
                                       $('#dispatchQueueDiv').show(800);
                                       
@@ -197,7 +215,7 @@ dispatchQueue = function(baseDataSession, RDatasModel){
 
 
 
-makeTables = function(tbody, props, data,){
+makeTables = function(tbody, props, data){
           $.each(data, function(i, dataPoint) {
             var tr = $('<tr>');
             $.each(props, function(i, prop) {
@@ -205,6 +223,39 @@ makeTables = function(tbody, props, data,){
             });
             tbody.append(tr);
           })
+}
+
+makeTablesWLinks = function(tbody, anchor,props, linkColClass, data){
+          $.each(data, function(i, dataPoint) {
+            var tr = $('<tr>');
+            $.each(props, function(i, prop) {
+              if(linkColClass[i]!=null){
+                var td = $('<td>')
+                $('<a href="#'+anchor+'" class='+linkColClass[i]+'>').html(dataPoint[prop]).appendTo(td);
+                td.appendTo(tr);
+              }else{
+                $('<td>').html(dataPoint[prop]).appendTo(tr);
+              }
+                
+            });
+            tbody.append(tr);
+          })
+          setOnClicks();      
+}
+
+//this is janky javascript... should be abstracted more... but whatever 
+setOnClicks = function(){
+    $('.truck').click(function(event){
+      
+      console.log(this);
+      $('#dispatchQueueSubDiv').show(800);
+      
+      
+    });
+    $('.pickup').click( function(event){
+      // do something like bring up a truck table
+    
+    });
 }
 
 tableFy = function(table){
