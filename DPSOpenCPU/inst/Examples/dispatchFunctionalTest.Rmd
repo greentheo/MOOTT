@@ -18,7 +18,9 @@ library(knitr)
 
 demoData = baseData(pickups = 1000, numTrucks = 10, numStations = 3, numDropOffs = 10)
 
-demoData
+
+
+
 
 ```
 
@@ -39,6 +41,12 @@ dispatchSummary = dispatchSummaries(dispatch = dispatch, baseData = demoData)
 
 ### summary metrics
 dispatchMetrics = dispatchBriefSummary(dispatchSummary = dispatchSummary, baseData = demoData)
+
+### base station optimization
+baseStationOpt = baseStationOpt(baseData=demoData, pickupDropOffPairs=dispatch$pickupDropOffPairs)
+
+
+
 
 
 ```

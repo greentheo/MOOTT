@@ -409,6 +409,7 @@ dispatchBriefSummary = function(dispatchSummary, baseData){
               loadServiceTime=round(dispatchSummary$dispatch$avgTimeToService, digits=2)))
   
 }
+
 dispatchRoute = function(dispatch, baseStations, trucksStations, trucksInfo, dropOffs){
   ## This function takes a set of ticket dispatches and calculates the likely route for each truck and returns a DF
   
@@ -436,5 +437,15 @@ dispatchRoute = function(dispatch, baseStations, trucksStations, trucksInfo, dro
     }
     return(position)
   })
+  
+}
+
+#' Take the generated Base Stations and figure out where they should move to to be better placed
+#' @param baseData is the list object returned from the function baseData()
+#' @return data.frame with the current baseStations, their position, the recommended position and the distance between the two, and average distance reduction between it and the surrounding pickups, dropOffs and their weights
+#' @export
+optimzeBaseStations = function(baseData, pickupDropOffPairs){
+  
+  
   
 }
