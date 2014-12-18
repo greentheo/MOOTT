@@ -1,12 +1,8 @@
-var baseDataSessionID;
-var dispatchSessionID;
-var dispatchSummariesID;
-var dispatchMetricsID;
-
 RDataModel = Backbone.Model.extend({
         defaults:{
           baseDataSessionID: null,
           dispatchSessionID: null,
+          optBaseStationID: null,
           dispatchSummariesID: null,
           dispatchMetricsID: null,
           userModel: null
@@ -20,6 +16,8 @@ RDataModel = Backbone.Model.extend({
           
             this.on("change:baseDataSessionID", function(model){
                 dispatchQueue(model.get('baseDataSessionID'), this);
+                optBaseStations(model.get('baseDataSessionID'), this);
+                
             });
             
             this.on('change:dispatchSessionID', function(model){
@@ -31,6 +29,9 @@ RDataModel = Backbone.Model.extend({
         },
         setDispatchSessionID: function(session){
           this.set({dispatchSessionID: session});
+        },
+        setoptBaseStationID: function(session){
+          this.set({optBaseStationID: session});
         },
         setDispatchSummariesID: function(session){
           this.set({dispatchSummariesID: session});
@@ -119,6 +120,22 @@ getDemoData = function(RDatasModel){
           });
   
 }
+
+optBaseStations = function(baseDataSession, RDatasModel){
+  var req = ocpu.call('optimizeBaseStations', {baseData: baseDataSession}, function(session){
+    RDatasModel.setoptBaseStationID(session);
+    
+    session.getObject(function(data){
+      makeTables($('#baseStationOptTable'), 
+        ["station", "lat", "long", "newLat", "newLong", "distanceAway", "improvement", "medOldDist", "medNewDist"],
+        data.opt);
+        
+      tableFy($('#baseStationOptTable'));
+      
+    });
+  });
+}
+
 //do the dispatch and fill in the table for the dispatch Queue
 dispatchQueue = function(baseDataSession, RDatasModel){
   console.log('dispatching queue...')
@@ -180,6 +197,9 @@ dispatchQueue = function(baseDataSession, RDatasModel){
                                             
                                             $('#waitingReports').hide(800);
                                             $('#reportsDiv').show(800);
+                                            
+                                            //all other dataDivs will be populated by now...show them
+                                            $('.dataDiv').show(800);
                                             
                                           });
                                         

@@ -38,6 +38,22 @@ dispatchQueue=function(data, pickupWindow=1,windowsAhead=1){
   return(dispatch)
 }
 
+#' A function which helps create a pickupDropOffPair Matrix
+#' @param pickups a dataframe containing pickups to be made
+#' @param baseData the list object returned from baseData()
+#' @export
+pickupDropOffs = function(pickupsWin, dropOffs, baseStations){
+  pickupDropoffPairs = pickupsWin %.%
+    group_by(WELL_NAME) %.%
+    summarize(dropOff=dropOffs[which.min(great_circle_distance(LAT_SURF, LONG_SURF, dropOffs$lat, dropOffs$long)), "dropOff"],
+              dropOffDist=min(great_circle_distance(LAT_SURF[1], LONG_SURF[1], dropOffs$lat, dropOffs$long)),
+              dropOffSpeed=rnorm(1, 30, 5),
+              station=baseStations[which.min(great_circle_distance(LAT_SURF, LONG_SURF, baseStations$lat, baseStations$long)), "station"],
+              stationDist=min(great_circle_distance(LAT_SURF[1], LONG_SURF[1], baseStations$lat, baseStations$long))
+    )
+  return(pickupDropoffPairs)
+}
+
 #' A function which does the actual dispatching and metric calculations
 #' @param pickupsWin 
 #' @param baseStations
@@ -55,15 +71,8 @@ pickupOpt = function(pickupsWin, baseStations, trucksStations, trucksInfo, dropO
     arrange(ymd_hms(pickupdate)) %.% 
     mutate(day = format(ymd_hms(pickupdate), "%d"))
     
+  pickupDropoffPairs = pickupDropOffs(pickupsWin, dropOffs, baseStations)
   
-  pickupDropoffPairs = pickupsWin %.%
-    group_by(WELL_NAME) %.%
-    summarize(dropOff=dropOffs[which.min(great_circle_distance(LAT_SURF, LONG_SURF, dropOffs$lat, dropOffs$long)), "dropOff"],
-              dropOffDist=min(great_circle_distance(LAT_SURF[1], LONG_SURF[1], dropOffs$lat, dropOffs$long)),
-              dropOffSpeed=rnorm(1, 30, 5),
-              station=baseStations[which.min(great_circle_distance(LAT_SURF, LONG_SURF, baseStations$lat, baseStations$long)), "station"],
-              stationDist=min(great_circle_distance(LAT_SURF[1], LONG_SURF[1], baseStations$lat, baseStations$long))
-              )
   
   weightedPoints=merge(pickupsWin, pickupDropoffPairs,by="WELL_NAME")
   weightedPoints=merge(weightedPoints, dropOffs, by="dropOff")
@@ -444,8 +453,44 @@ dispatchRoute = function(dispatch, baseStations, trucksStations, trucksInfo, dro
 #' @param baseData is the list object returned from the function baseData()
 #' @return data.frame with the current baseStations, their position, the recommended position and the distance between the two, and average distance reduction between it and the surrounding pickups, dropOffs and their weights
 #' @export
-optimzeBaseStations = function(baseData, pickupDropOffPairs){
+optimizeBaseStations = function(baseData){
+  
+  pickupDropoffPairs = pickupDropOffs(baseData$pickups, baseData$dropOffPoints, baseData$baseStations)
+  pickupDropoffPairs = merge(pickupDropoffPairs, baseData$dropOffPoints, by="dropOff")
+  pickupDropoffPairs = merge(pickupDropoffPairs, baseData$pickups, by="WELL_NAME")
   
   
+  points = data.frame(lat=as.numeric(c(pickupDropoffPairs$lat, pickupDropoffPairs$LAT_SURF)), long=as.numeric(c(pickupDropoffPairs$long, pickupDropoffPairs$LONG_SURF)), station=pickupDropoffPairs$station)
   
+  betterLocations = kmeans(x = points[,c("lat", "long")], centers = baseData$baseStations[,c("lat", "long")])
+  
+  distanceFromCurrent = great_circle_distance(baseData$baseStations$lat, baseData$baseStations$long, betterLocations$centers[,"lat"], betterLocations$centers[,"long"])
+  
+  pickupDropoffPairs = merge(pickupDropoffPairs, baseData$baseStations, by="station")
+  pickupDropoffPairs = merge(pickupDropoffPairs, data.frame(betterLocations$centers, station=c(1:nrow(baseData$baseStations))), by="station")
+  
+  
+  impFactor = pickupDropoffPairs %.%
+    group_by(WELL_NAME) %.%
+    mutate(oldDist = great_circle_distance(lat.y, long.y, LAT_SURF, LONG_SURF)+ #distance base to pickup
+                great_circle_distance(LAT_SURF, LONG_SURF, lat.x, long.x)+ #pickup to dropoff
+                great_circle_distance(lat.x, long.x, lat.y, long.y), #dropoff back to base
+              newDist = great_circle_distance(lat, long, LAT_SURF, LONG_SURF)+ #distance new base to pickup
+                great_circle_distance(LAT_SURF, LONG_SURF, lat.x, long.x)+ #pickup to dropoff
+                great_circle_distance(lat.x, long.x, lat, long)) %.%
+    group_by(station) %.%
+    arrange(station) %.%
+    summarize(avgOldDist=mean(oldDist),
+              avgNewDist=mean(newDist),
+              medOldDist=quantile(oldDist, .5),
+              medNewDist=quantile(newDist, .5),
+              sdOld=sd(oldDist),
+              sdNew=sd(newDist),
+              improvement=-(sum(newDist)/sum(oldDist)-1)*100)
+  
+  
+  return(list(opt=merge(data.frame(baseData$baseStations, newLat=betterLocations$centers[,"lat"], 
+                          newLong=betterLocations$centers[,"long"], distanceAway=distanceFromCurrent), round(impFactor, digits=2),
+                        by="station")
+                          ))
 }
