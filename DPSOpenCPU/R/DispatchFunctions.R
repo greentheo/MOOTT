@@ -419,6 +419,13 @@ dispatchBriefSummary = function(dispatchSummary, baseData){
   
 }
 
+#' A function which takes the input data from a table in the interface and returns the new data for that table
+#' @export
+alterData = function(...){
+  
+  return(eval(substitute(alist(...)))$value)
+}
+
 dispatchRoute = function(dispatch, baseStations, trucksStations, trucksInfo, dropOffs){
   ## This function takes a set of ticket dispatches and calculates the likely route for each truck and returns a DF
   

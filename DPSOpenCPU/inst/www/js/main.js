@@ -63,6 +63,7 @@ UserModel = Backbone.Model.extend({
 
 var User;
 var RDatas;
+//var editor;
 
 $(document).ready(function() {
     
@@ -99,7 +100,7 @@ getDemoData = function(RDatasModel){
             session.getObject(function(data){
                 
                 //fill in the tables with the demoData (or in a production setting, the modified user data...we wont need R here)
-                makeTables($('#baseStationsTable tbody'), ["station", "lat", "long"], data.baseStations);
+                //makeTables($('#baseStationsTable tbody'), ["station", "lat", "long"], data.baseStations);
                 makeTables($('#trucksStationsTable tbody'), ["truckNumber", "station"], data.trucksStations);
                 makeTables($('#dropOffPointsTable tbody'), ["dropOff", "lat", "long"], data.dropOffPoints);
                 makeTables($('#trucksInfoTable tbody'), ["truckNumber", "available", "avgSpeed"], data.trucksInfo);
@@ -107,11 +108,14 @@ getDemoData = function(RDatasModel){
                 
                 
                 //tableFy the tables now that there's data for them.
-                tableFyEditable($('#baseStationsTable'));
-                tableFyEditable($('#trucksStationsTable'));
-                tableFyEditable($('#trucksInfoTable'));
-                tableFyEditable($('#dropOffPointsTable'));
-                tableFyEditable($('#pickupPointsTable'));
+                tableFyEditable('#baseStationsTable', RDatasModel.get('baseDataSessionID'), 'baseStations', 
+                  [{data: "station"}, {data:"lat"}, {data:"long"}],
+                  [{label: "Station", name: "station"}, {label: "Lat", name: "lat"}, {label: "Long", name: "long"}]);
+                  
+                tableFy($('#trucksStationsTable'));
+                tableFy($('#trucksInfoTable'));
+                tableFy($('#dropOffPointsTable'));
+                tableFy($('#pickupPointsTable'));
                 
                 $('#waitingSysInfo').hide(800);
                 $('#sysInfoDiv').show(800);
@@ -270,6 +274,11 @@ setOnClicks = function(){
       console.log(this);
       $('#dispatchQueueSubDiv').show(800);
       
+      //display a dataTable but with only the selected truck
+      
+      
+      
+      //display alternatives for that truck
       
     });
     $('.pickup').click( function(event){
@@ -283,15 +292,56 @@ tableFy = function(table){
     table.DataTable();
   
 }
-tableFyEditable = function(table){
-  table.dataTable().makeEditable({
-                    sUpdateURL: function(value, settings)
-                                {
-                                        return(value);
-                                }
-                });
+tableFyEditable = function(table, dataSession, tableID, colnames, editable){
+  
+    ocpu.call('returnTable', {data: dataSession, table: tableID}, function(session){
+      
+        var editor = new $.fn.dataTable.Editor( {
+          ajax: function(method, url, data, success, error ){console.log(method);},
+          table: '#baseStationsTable',
+          fields: editable
+        });
+        
+        $(table).DataTable( {
+          ajax: session.loc+'R/.val/json',
+          dom: "Tfrtip",
+          columns: colnames,
+          tableTools: {
+            sRowSelect: 'os',
+            aButtons: [
+                { sExtends: 'editor_create', editor: editor },
+                { sExtends: 'editor_edit',   editor: editor },
+                { sExtends: 'editor_remove', editor: editor }
+            ]
+          }
+        });
+        $(table).on( 'click', 'tbody td', function () {
+          editor.inline( this );
+        } );
+      
+    });
+     
+      
+  
+  /*
+  var editor = new $.fn.dataTable.Editor( {
+    ajax:  '../R/',
+    table: table,
+    fields: [
+        { label: 'First name', name: 'first_name' },
+        { label: 'Last name',  name: 'last_name'  },
+        // etc
+        ]
+    } );*/
+    
+    
+
+
 }
 
+tableFyWCheckBox = function(table){
+ // http://editor.datatables.net/examples/api/checkbox.html
+}
 exportTableToCSV = function(table, filename) {
         
         var $rows = table.find('tr:has(td)'),
