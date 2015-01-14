@@ -509,7 +509,7 @@ optimizeBaseStations = function(baseData){
 #' @export
 viableAlternatives = function(baseData, dispatch, loadName){
   trucksLocation = merge(baseData$trucksStations, baseData$baseStations, by="station")
-  trucksLocation[["distToPickup"]] = great_circle_distance(trucksLocation$lat, trucksLocation$long, subset(baseData$OGsub, WELL_NAME==loadName)$LAT_SURF, subset(baseData$OGsub, WELL_NAME==loadName)$LONG_SURF)
+  trucksLocation[["distToPickup"]] = great_circle_distance(trucksLocation$lat, trucksLocation$long, subset(baseData$OGsub, WELL_NAME==loadName)$LAT_SURF[1], subset(baseData$OGsub, WELL_NAME==loadName)$LONG_SURF[1])
   load = dispatch$dispatch %.%
     group_by(truckAssigned) %.%
     summarize(loadOnBooks=length(which(type=="scheduled")),
