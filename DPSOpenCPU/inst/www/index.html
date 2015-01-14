@@ -45,7 +45,7 @@
     <!--<script type="text/javascript" src="js/DataTables-1.10.4/media/js/jquery.js"></script>-->
     <script type="text/javascript" src="js/DataTables-1.10.4/media/js/jquery.dataTables.js"></script>
     <script type="text/javascript" src="js/DataTables-1.10.4/extensions/TableTools/js/dataTables.tableTools.js"></script>
-    <script type="text/javascript" src="js/DataTables-1.10.4/extensions/Editor-1.3.3/js/dataTables.editor.js"></script>
+    <!--<script type="text/javascript" src="js/DataTables-1.10.4/extensions/Editor-1.3.3/js/dataTables.editor.js"></script>-->
 
     <!--backbone-->
     <script src="js/underscore-min.js"></script>
@@ -236,7 +236,7 @@
         
       <div class="row">
         <div class="col-lg-9">
-          <h2>Dispatch Queue</h2>
+          <h2>Dispatch Queue<small>(Click a link to see a subque, or a load for alternatives)</small></h2>
           <div id="waitingDispatchQueue" class="waitingDispatch">
             <h3>Calculating Dispatch Queue....</h3>
             <img src='img/waiting.gif' height="100", width="80">
@@ -279,7 +279,7 @@
          <a name="dispatchQueueSubDiv"></a>
          <div class="row" > <!-- extended info for truck, company or dropoff that's clicked on-->
           <div class="col-lg-6">
-          <h2>Truck Loads Scheduled <small>(Click a load to see Alternative Options)</small></h2>
+          <h2>Loads Scheduled <small>(Click a load to see Alternative Options)</small></h2>
             <table id="truckLoadTable" class="display" cellspacing="0" width="100%">
               <thead>
                   <tr>
@@ -309,33 +309,37 @@
           </div><!--column-->    
           
           <div class="col-lg-6">
-          <h2>Viable Alternatives <small>(Click + button to see a subqueue for a truck)</small></h2>
-            <table id="viableAlternativeTable" class="display" cellspacing="0" width="100%">
+          <h2>Viable Alternatives <small>(Click a Load Name above or to the left for viable alternatives)</small></h2>
+          <h3 id="loadNameH3"></h3>
+          <div id="waitingViableAlt" style="display:none">
+            <img src='img/waiting.gif' height="100", width="80">
+          </div>
+          <div id="viAltTableDiv">
+            <table id="viableAltTable" class="display" cellspacing="0" width="100%">
               <thead>
                   <tr>
                       <th>Truck ID</th>
-                      <th>Load Name</th>
-                      <th>Company Name</th>
-                      <th>Requested Date</th>
-                      <th>ETA Pickup</th>
-                      <th>Assgnd DropOff</th>
-                      <th>Type</th>
+                      <th>Station</th>
+                      <th>Distance to Load</th>
+                      <th>Current Load</th>
+                      <th>Forecast Load</th>
+                      <th>Rank</th>
                   </tr>
               </thead>
               <tfoot>
                   <tr>
                       <th>Truck ID</th>
-                      <th>Load Name</th>
-                      <th>Company Name</th>
-                      <th>Requested Date</th>
-                      <th>ETA Pickup</th>
-                      <th>Assgnd DropOff</th>
-                      <th>Type</th>
+                      <th>Station</th>
+                      <th>Distance to Load</th>
+                      <th>Current Load</th>
+                      <th>Forecast Load</th>
+                      <th>Rank</th>
                   </tr>
               </tfoot>
             <tbody>
             </tbody>
             </table>
+            </div>
           </div> <!--column-->   
         </div> <!-- row -->
         </div> <!-- dispatchQueue SubDiV-->

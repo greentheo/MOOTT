@@ -5,6 +5,7 @@ RDataModel = Backbone.Model.extend({
           optBaseStationID: null,
           dispatchSummariesID: null,
           dispatchMetricsID: null,
+          vAltID: null,
           userModel: null
         },
         initialize: function(){
@@ -42,8 +43,31 @@ RDataModel = Backbone.Model.extend({
         setUserModel: function(userModel){
           this.set({userModel: userModel});
         },
+        setVAltID: function(session){
+          this.set({vAltID: session});
+        },
         
     });
+
+dataTablesBB = Backbone.Model.extend({
+  defaults:{
+    truckLoadDataTable: null,
+    viableAltTable: null
+  },
+  initialize: function(){
+    this.on('change:truckLoadDataTable', function(model){
+      model.get('truckLoadDataTable').rows().draw();
+    })
+    
+  },
+  setTruckLoadTable: function(table){
+    this.set({truckLoadDataTable: table})
+  },
+  setViableAltTable: function(table){
+    this.set({viableAltTable: table})
+  }
+
+});
 
 UserModel = Backbone.Model.extend({
         defaults:{
@@ -63,12 +87,14 @@ UserModel = Backbone.Model.extend({
 
 var User;
 var RDatas;
+var Tables;
 //var editor;
 
 $(document).ready(function() {
     
     User = new UserModel();  // when there's an actual user, we'll pull their details out of the node.js server
     RDatas = new RDataModel({userModel: User}); //when there's an actual user, we'll pass the user into the RDatas model and instead of pseudo data we'll get real dispatch data back.
+    Tables = new dataTablesBB();
     
     $('.dataDiv').hide();
     $('#dispatchQueueSubDiv').hide();
@@ -107,11 +133,12 @@ getDemoData = function(RDatasModel){
                 makeTables($('#pickupPointsTable tbody'), ["WELL_NAME", "COMPANY_NA", "SURF_LAT", "SURF_LONG"], data.pickups);
                 
                 
-                //tableFy the tables now that there's data for them.
-                tableFyEditable('#baseStationsTable', RDatasModel.get('baseDataSessionID'), 'baseStations', 
+                //tableFy the tables now that there's data for them
+                /*tableFyEditable('#baseStationsTable', RDatasModel.get('baseDataSessionID'), 'baseStations', 
                   [{data: "station"}, {data:"lat"}, {data:"long"}],
                   [{label: "Station", name: "station"}, {label: "Lat", name: "lat"}, {label: "Long", name: "long"}]);
-                  
+                  */
+                tableFy($('#baseStationsTable'));  
                 tableFy($('#trucksStationsTable'));
                 tableFy($('#trucksInfoTable'));
                 tableFy($('#dropOffPointsTable'));
@@ -147,7 +174,7 @@ dispatchQueue = function(baseDataSession, RDatasModel){
           $('.waitingDispatch').show(800);
           
           var req = ocpu.call('dispatchQueue', 
-                              {data: baseDataSession, windowsAhead: 12}, 
+                              {data: baseDataSession, windowsAhead: 3}, 
                               function(session){
                                   //dispatchSessionID=session;
                                   RDatasModel.setDispatchSessionID(session);
@@ -169,7 +196,10 @@ dispatchQueue = function(baseDataSession, RDatasModel){
                                     tableFy($('#dispatchQueue'));
                                     tableFy($('#pickupDropOffsTable'));
                                     tableFy($('#pickupBaseStationsTable'));
-                                      
+                                    
+                                    Tables.setTruckLoadTable(tableFy($('#truckLoadTable')));
+                                    Tables.setViableAltTable(tableFy($('#viableAltTable')));
+                                    
                                       $('#waitingDispatchQueue').hide(800);
                                       $('#dispatchQueueDiv').show(800);
                                       
@@ -249,7 +279,10 @@ makeTables = function(tbody, props, data){
           })
 }
 
+//basically this only applies to the main dispatchQueue table ... doesn't make sense for other tables
+///probably should abstract it a bit more for other tasks.
 makeTablesWLinks = function(tbody, anchor,props, linkColClass, data){
+        tbody.find("tr").remove();
           $.each(data, function(i, dataPoint) {
             var tr = $('<tr>');
             $.each(props, function(i, prop) {
@@ -264,32 +297,144 @@ makeTablesWLinks = function(tbody, anchor,props, linkColClass, data){
             });
             tbody.append(tr);
           })
-          setOnClicks();      
+          setOnClicks(data);      
 }
 
+changeTables = function(table,  props, data, anchor,linkColClass){
+  table.clear();                                
+      $.each(data, function(i, row){
+        newRow=[];
+        $.each(props, function(j, prop){
+          if(linkColClass[j]!=null){
+               newRow.push('<a href="#'+anchor+'" class='+linkColClass[j]+'>'+row[prop]+'</a>');
+          }else{
+            newRow.push(row[prop]);
+          }
+        });
+        table.row.add(newRow);
+      });
+  return(table);    
+}
 //this is janky javascript... should be abstracted more... but whatever 
-setOnClicks = function(){
+//sets click handlers for a few different classes of links that come from the dispatch table
+setOnClicks = function(data){
     $('.truck').click(function(event){
-      
-      console.log(this);
+      var truck=$(this).text();
+      //display a dataTable but with only the selected truck
+      //filter the dispatch data from the selected truck
+      filteredData = $.grep(data, function(d){
+        return d.truckAssigned==truck;
+      });
+          
+      changeTables(Tables.attributes.truckLoadDataTable, 
+                    ["truckAssigned","WELL_NAME", "COMPANY_NA", "pickupdate","ETAPickup","assignedDropOff","type"],
+                    filteredData,
+                    "dispatchQueueSubDiv",
+                    ["truck","pickup", "company", null, null, "dropOff",null]); 
+      Tables.attributes.truckLoadDataTable.rows().draw();
+      setOnClicks(data);
       $('#dispatchQueueSubDiv').show(800);
       
-      //display a dataTable but with only the selected truck
-      
-      
-      
-      //display alternatives for that truck
       
     });
-    $('.pickup').click( function(event){
-      // do something like bring up a truck table
+    $('.company').click(function(event){
+      var cust=$(this).text();
+      //display a dataTable but with only the selected truck
+      //filter the dispatch data from the selected truck
+      filteredData = $.grep(data, function(d){
+        return d.COMPANY_NA==cust;
+      });
+          
+      changeTables(Tables.attributes.truckLoadDataTable, 
+                    ["truckAssigned","WELL_NAME", "COMPANY_NA", "pickupdate","ETAPickup","assignedDropOff","type"],
+                    filteredData,
+                    "dispatchQueueSubDiv",
+                    ["truck","pickup", "company", null, null, "dropOff",null]); 
+      Tables.attributes.truckLoadDataTable.rows().draw();
+      setOnClicks(data);
+      $('#dispatchQueueSubDiv').show(800);
     
     });
+    $('.dropOff').click(function(event){
+      var dropOff=$(this).text();
+      //display a dataTable but with only the selected truck
+      //filter the dispatch data from the selected truck
+      filteredData = $.grep(data, function(d){
+        return d.assignedDropOff==dropOff;
+      });
+          
+      changeTables(Tables.attributes.truckLoadDataTable, 
+                    ["truckAssigned","WELL_NAME", "COMPANY_NA", "pickupdate","ETAPickup","assignedDropOff","type"],
+                    filteredData,
+                    "dispatchQueueSubDiv",
+                    ["truck","pickup", "company", null, null, "dropOff",null]); 
+      Tables.attributes.truckLoadDataTable.rows().draw();
+      setOnClicks(data);
+      $('#dispatchQueueSubDiv').show(800);
+    
+    });
+    $('.pickup').click( function(event){
+      //show the processing div
+      $('#waitingViableAlt').show(800);
+      $('#viAltTableDiv').hide();
+      
+      // bring up the viable alternatives table
+      var load=$(this).text();
+      $('#loadNameH3').html('Load Name: '+load);
+      
+      //display a dataTable but with only the selected truck
+      //filter the dispatch data from the selected truck
+      filteredData = $.grep(data, function(d){
+        return d.WELL_NAME==load;
+      });
+          
+      changeTables(Tables.attributes.truckLoadDataTable, 
+                    ["truckAssigned","WELL_NAME", "COMPANY_NA", "pickupdate","ETAPickup","assignedDropOff","type"],
+                    filteredData,
+                    "dispatchQueueSubDiv",
+                    ["truck","pickup", "company", null, null, "dropOff",null]); 
+      Tables.attributes.truckLoadDataTable.rows().draw();
+      setOnClicks(data);
+      
+      //now make the call to R to find the viable alternatives for a certain lease (R goes through a mini routing demo)
+      ocpu.call('viableAlternatives', {baseData: RDatas.get('baseDataSessionID'), dispatch: RDatas.get('dispatchSessionID') , loadName: load}, function(session){
+        //store the session in the RData model
+        RDatas.setVAltID(session);                                  
+        session.getObject(function(sessionData){
+          
+          //add on a "change load to this truck button"
+          
+          changeTables(Tables.attributes.viableAltTable, 
+                    ["truckNumber","station", "distToPickup", "loadOnBooks","loadForecast", "rank"],
+                    sessionData.viableAlt,
+                    "dispatchQueueSubDiv",
+                    ["truck", null, null, null, null, null]); 
+          Tables.attributes.viableAltTable.rows().draw();
+          
+          setOnClicks(data);
+          
+          //hide the calculating div
+          $('#waitingViableAlt').hide();
+          $('#viAltTableDiv').show(800);
+        });
+      })
+      
+      
+      
+      //TODO
+      //set a click handler for a reassign button which reassigns the lease to the truck in question and then recalculates all routing       
+      
+      $('#dispatchQueueSubDiv').show(800);
+    
+    });
+    
 }
 
 tableFy = function(table){
   //tableify the dispatch queue and all the other tables
-    table.DataTable();
+    return table.DataTable({
+      "searching": true
+    });
   
 }
 tableFyEditable = function(table, dataSession, tableID, colnames, editable){

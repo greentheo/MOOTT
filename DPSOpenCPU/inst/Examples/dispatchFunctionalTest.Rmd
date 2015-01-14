@@ -46,14 +46,16 @@ dispatchMetrics = dispatchBriefSummary(dispatchSummary = dispatchSummary, baseDa
 
 
 
-
-
-
 ```
 
 
-### Modifying the base data and assumptions
+### Viable Alternatives
+
+```{r}
+
+vAltTable = viableAlternatives(baseData=demoData, dispatch=dispatch, loadName=dispatch$dispatch$WELL_NAME[11])
 
 
+```
 ### Modifying the queue, pickups and dynamically rescheduling the dispatch
 

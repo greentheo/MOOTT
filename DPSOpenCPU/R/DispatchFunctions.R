@@ -501,3 +501,22 @@ optimizeBaseStations = function(baseData){
                         by="station")
                           ))
 }
+
+#' Take the generated Base Stations and figure out where they should move to to be better placed
+#' @param baseData is the list object returned from the function baseData()
+#' @param dispatch is the list object returned form the function pickupOpt()
+#' @return data.frame with viable alternatives for the particular pickup
+#' @export
+viableAlternatives = function(baseData, dispatch, loadName){
+  trucksLocation = merge(baseData$trucksStations, baseData$baseStations, by="station")
+  trucksLocation[["distToPickup"]] = great_circle_distance(trucksLocation$lat, trucksLocation$long, subset(baseData$OGsub, WELL_NAME==loadName)$LAT_SURF, subset(baseData$OGsub, WELL_NAME==loadName)$LONG_SURF)
+  load = dispatch$dispatch %.%
+    group_by(truckAssigned) %.%
+    summarize(loadOnBooks=length(which(type=="scheduled")),
+              loadForecast=length(which(type=="forecast")))
+  
+  trucksLocation =merge(trucksLocation, load, by.x="truckNumber", by.y="truckAssigned", all.x = T)
+  trucksLocation[is.na(trucksLocation)]=0
+  trucksLocation[["rank"]]=with(trucksLocation, rank(rank(distToPickup)+.5*rank(loadOnBooks)+.5*rank(loadForecast)))
+  return(list(viableAlt = with(trucksLocation, trucksLocation[order(rank), ])))
+}

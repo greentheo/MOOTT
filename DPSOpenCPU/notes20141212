@@ -1,0 +1,36 @@
+x-add in another table into config for valid pickup points...specify which are valid dropoff poitns for the pickup (all or a subset)
+x-and a table that shows the pickup-dropoff pairs (editable)
+x-and a table that shows the pickup-baseStation pairs (editable)
+x - add in a column for the dropoff point in the dispatchQueue
+-gerrymander an aha moment into the data and the demo (the big "I want one!" moment)
+-Rod's ahas .... 
+-- parking lot location (are they in the right position... or given a set of lots which trucks should go there)
+-- better operations with a forecast and help in the dispatch according to multi objectives 
+-- it all goes to hell when they have to reallocate when resources change...dynamic reallocation... system interrupt recovery
+
+-if we are telling a story with it we need some canned data (maybe create a couple of pre-routed and dispatched results so that we don't have to wait for it to dispatch)
+
+-what's the story?
+
+
+TODO:
+====
+
+-manual reassignment of load
+-manual change of load to dropoff point
+-manual change of drop off point availability
+-manual change of truck availability
+-truck alternatives calculations
+-base station optimizer (kmeans... this should be easy actually)
+
+
+Further TODO
+
+-dynamic creation of new dropoff points
+-creation of new pickup requests to be filled
+-parking lot analysis ... which trucks should be at which base (can't really demo this though until we have real data...or we make up fake data)
+- 
+
+
+Even later TODO
+-multi stop
