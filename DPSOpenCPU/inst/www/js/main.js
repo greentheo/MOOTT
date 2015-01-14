@@ -405,10 +405,10 @@ setOnClicks = function(data){
           //add on a "change load to this truck button"
           
           changeTables(Tables.attributes.viableAltTable, 
-                    ["truckNumber","station", "distToPickup", "loadOnBooks","loadForecast", "rank"],
+                    ["rank","truckNumber","station", "distToPickup", "loadOnBooks","loadForecast"],
                     sessionData.viableAlt,
                     "dispatchQueueSubDiv",
-                    ["truck", null, null, null, null, null]); 
+                    [null, "truck", null, null, null, null]); 
           Tables.attributes.viableAltTable.rows().draw();
           
           setOnClicks(data);
