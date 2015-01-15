@@ -6,6 +6,8 @@ RDataModel = Backbone.Model.extend({
           dispatchSummariesID: null,
           dispatchMetricsID: null,
           vAltID: null,
+          vAltLoad: null,
+          vAltTime: null,
           userModel: null
         },
         initialize: function(){
@@ -46,7 +48,31 @@ RDataModel = Backbone.Model.extend({
         setVAltID: function(session){
           this.set({vAltID: session});
         },
+        setVAltLoad: function(load){
+          this.set({vAltLoad: load});        
+        },
+        setVAltTime: function(time){
+          this.set({vAltTime: time});        
+        },
         
+        //other functions which can be triggered without any change triggers
+        changeTruckLoad: function(newTruck){
+          //hide subQueues
+          $('#dispatchQueueSubDiv').hide(800);
+          //reassign the current vAltLoad and Time ticket in the dispatch queue to the new truck
+          
+          //recalculate queue
+        },
+        rebalanceTrucksStations: function(){
+          //change the truck to base station assignments
+          
+          //re dispatch
+        },
+        changeTruckStatus: function(truck){
+          //change the truck's status
+          
+          //re dispatch
+        }
     });
 
 dataTablesBB = Backbone.Model.extend({
@@ -183,8 +209,8 @@ dispatchQueue = function(baseDataSession, RDatasModel){
                                     console.log(data);
                                     makeTablesWLinks($('#dispatchQueue tbody'), 
                                       "dispatchQueueSubDiv",
-                                      ["truckAssigned","WELL_NAME", "COMPANY_NA", "pickupdate","ETAPickup","assignedDropOff","type"],
-                                      ["truck","pickup", "company", null, null, "dropOff",null],
+                                      ["pickupdate", "truckAssigned","WELL_NAME", "COMPANY_NA","ETAPickup","assignedDropOff","type"],
+                                      [null, "truck","pickup", "company", null, "dropOff",null],
                                       data.dispatch);
                                     makeTables($('#pickupDropOffsTable tbody'), 
                                       ["WELL_NAME","dropOff", "dropOffDist"], 
@@ -318,6 +344,7 @@ changeTables = function(table,  props, data, anchor,linkColClass){
 //this is janky javascript... should be abstracted more... but whatever 
 //sets click handlers for a few different classes of links that come from the dispatch table
 setOnClicks = function(data){
+    //filter by truck
     $('.truck').click(function(event){
       var truck=$(this).text();
       //display a dataTable but with only the selected truck
@@ -326,17 +353,18 @@ setOnClicks = function(data){
         return d.truckAssigned==truck;
       });
           
-      changeTables(Tables.attributes.truckLoadDataTable, 
-                    ["truckAssigned","WELL_NAME", "COMPANY_NA", "pickupdate","ETAPickup","assignedDropOff","type"],
+       changeTables(Tables.attributes.truckLoadDataTable, 
+                    ["pickupdate", "truckAssigned","WELL_NAME", "COMPANY_NA","ETAPickup","assignedDropOff","type"],
                     filteredData,
                     "dispatchQueueSubDiv",
-                    ["truck","pickup", "company", null, null, "dropOff",null]); 
+                    [null, "truck","pickup", "company", null, "dropOff",null]); 
       Tables.attributes.truckLoadDataTable.rows().draw();
       setOnClicks(data);
       $('#dispatchQueueSubDiv').show(800);
       
       
     });
+    //filter by customer
     $('.company').click(function(event){
       var cust=$(this).text();
       //display a dataTable but with only the selected truck
@@ -346,15 +374,16 @@ setOnClicks = function(data){
       });
           
       changeTables(Tables.attributes.truckLoadDataTable, 
-                    ["truckAssigned","WELL_NAME", "COMPANY_NA", "pickupdate","ETAPickup","assignedDropOff","type"],
+                    ["pickupdate", "truckAssigned","WELL_NAME", "COMPANY_NA","ETAPickup","assignedDropOff","type"],
                     filteredData,
                     "dispatchQueueSubDiv",
-                    ["truck","pickup", "company", null, null, "dropOff",null]); 
+                    [null, "truck","pickup", "company", null, "dropOff",null]); 
       Tables.attributes.truckLoadDataTable.rows().draw();
       setOnClicks(data);
       $('#dispatchQueueSubDiv').show(800);
     
     });
+    //filter by dropoff points
     $('.dropOff').click(function(event){
       var dropOff=$(this).text();
       //display a dataTable but with only the selected truck
@@ -364,15 +393,17 @@ setOnClicks = function(data){
       });
           
       changeTables(Tables.attributes.truckLoadDataTable, 
-                    ["truckAssigned","WELL_NAME", "COMPANY_NA", "pickupdate","ETAPickup","assignedDropOff","type"],
+                    ["pickupdate", "truckAssigned","WELL_NAME", "COMPANY_NA","ETAPickup","assignedDropOff","type"],
                     filteredData,
                     "dispatchQueueSubDiv",
-                    ["truck","pickup", "company", null, null, "dropOff",null]); 
+                    [null, "truck","pickup", "company", null, "dropOff",null]); 
       Tables.attributes.truckLoadDataTable.rows().draw();
       setOnClicks(data);
       $('#dispatchQueueSubDiv').show(800);
     
     });
+    
+    //pickup is the class that is a link to the actual load to be reassigned
     $('.pickup').click( function(event){
       //show the processing div
       $('#waitingViableAlt').show(800);
@@ -380,7 +411,9 @@ setOnClicks = function(data){
       
       // bring up the viable alternatives table
       var load=$(this).text();
-      $('#loadNameH3').html('Load Name: '+load);
+      RDatas.setVAltLoad('load');
+      RDatas.setVAltTime($(this).parent().parent().find('td:nth-child(1)').html());
+      $('#loadNameH3').html('Load Name: '+load+'<br>Requested: '+RDatas.get('vAltTime'));
       
       //display a dataTable but with only the selected truck
       //filter the dispatch data from the selected truck
@@ -389,10 +422,10 @@ setOnClicks = function(data){
       });
           
       changeTables(Tables.attributes.truckLoadDataTable, 
-                    ["truckAssigned","WELL_NAME", "COMPANY_NA", "pickupdate","ETAPickup","assignedDropOff","type"],
+                    ["pickupdate", "truckAssigned","WELL_NAME", "COMPANY_NA","ETAPickup","assignedDropOff","type"],
                     filteredData,
                     "dispatchQueueSubDiv",
-                    ["truck","pickup", "company", null, null, "dropOff",null]); 
+                    [null, "truck","pickup", "company", null, "dropOff",null]); 
       Tables.attributes.truckLoadDataTable.rows().draw();
       setOnClicks(data);
       
@@ -402,13 +435,17 @@ setOnClicks = function(data){
         RDatas.setVAltID(session);                                  
         session.getObject(function(sessionData){
           
+          var newData = [];
           //add on a "change load to this truck button"
-          
+          $.each(sessionData.viableAlt, function(i, row){
+            row["reassign"]='<button class="reassignBtn" truck="'+row["truckNumber"]+'">Assign Load</button>';
+            newData.push(row);
+          });
           changeTables(Tables.attributes.viableAltTable, 
-                    ["rank","truckNumber","station", "distToPickup", "loadOnBooks","loadForecast"],
-                    sessionData.viableAlt,
+                    ["rank","truckNumber","station", "distToPickup", "loadOnBooks","loadForecast","reassign"],
+                    newData,
                     "dispatchQueueSubDiv",
-                    [null, "truck", null, null, null, null]); 
+                    [null, "truck", null, null, null, null, null]); 
           Tables.attributes.viableAltTable.rows().draw();
           
           setOnClicks(data);
@@ -421,12 +458,16 @@ setOnClicks = function(data){
       
       
       
-      //TODO
-      //set a click handler for a reassign button which reassigns the lease to the truck in question and then recalculates all routing       
-      
       $('#dispatchQueueSubDiv').show(800);
     
     });
+    
+    $('.reassignBtn').click(function(event){
+        //trigger the change truck-load function in the backbone model
+        RDatas.changeTruckLoad($(this)[0].attributes.truck);
+        
+        
+      });   
     
 }
 
